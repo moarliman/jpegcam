@@ -1,51 +1,76 @@
 name: Build Sony Camera APK
+
 on: [push, workflow_dispatch]
+
 jobs:
   build:
+    name: ${{ matrix.variant }} (${{ matrix.ndk_label }})
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: legacy
+            ndk_label: "NDK r16 · armeabi + armeabi-v7a"
+            ndk_version: "16.1.4479499"
+            artifact_name: JPEGCAM-legacy
+            needs_libncurses: true
+
+          - variant: modern
+            ndk_label: "NDK r21 · armeabi-v7a only"
+            ndk_version: "21.4.7075529"
+            artifact_name: JPEGCAM-modern
+            needs_libncurses: false
+
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install Legacy NDK Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libncurses5
+      - name: Install libncurses5 (NDK r16 only)
+        if: matrix.needs_libncurses
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y libncurses5
 
-    - name: Download libjpeg-turbo Source
-      run: |
-        cd app/src/main/cpp
-        wget -q https://github.com/libjpeg-turbo/libjpeg-turbo/archive/refs/tags/2.1.5.1.tar.gz
-        tar -xzf 2.1.5.1.tar.gz
-        mv libjpeg-turbo-2.1.5.1 libjpeg-turbo
-        # Download stb_image.h header
-        wget -q https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
+      - name: Download libjpeg-turbo source
+        run: |
+          cd app/src/main/cpp
+          wget -q https://github.com/libjpeg-turbo/libjpeg-turbo/archive/refs/tags/2.1.5.1.tar.gz
+          tar -xzf 2.1.5.1.tar.gz
+          mv libjpeg-turbo-2.1.5.1 libjpeg-turbo
+          wget -q https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
 
+      - name: Set up Android SDK and NDK ${{ matrix.ndk_version }}
+        run: |
+          mkdir $HOME/clean-sdk
+          cp -r $ANDROID_SDK_ROOT/licenses $HOME/clean-sdk/
 
-    - name: Create Clean Room SDK & NDK 16.1
-      run: |
-        mkdir $HOME/clean-sdk
-        cp -r $ANDROID_SDK_ROOT/licenses $HOME/clean-sdk/
-        
-        wget -q https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
-        unzip -q commandlinetools-linux-8512546_latest.zip -d $HOME/clean-sdk/cmdline-tools
-        
-        export JAVA_HOME=$JAVA_HOME_11_X64
-        yes | $HOME/clean-sdk/cmdline-tools/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/clean-sdk "platforms;android-10" "build-tools;26.0.2" "ndk;16.1.4479499" "cmake;3.6.4111459" > /dev/null
-        
-        echo "sdk.dir=$HOME/clean-sdk" > local.properties
-        echo "ndk.dir=$HOME/clean-sdk/ndk/16.1.4479499" >> local.properties
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
+          unzip -q commandlinetools-linux-8512546_latest.zip -d $HOME/clean-sdk/cmdline-tools
 
-    - name: Build with Isolated Legacy Gradle
-      run: |
-        export JAVA_HOME=$JAVA_HOME_8_X64
-        wget -q https://services.gradle.org/distributions/gradle-4.10.3-bin.zip
-        unzip -q gradle-4.10.3-bin.zip
-        
-        ./gradle-4.10.3/bin/gradle assembleRelease --stacktrace
+          export JAVA_HOME=$JAVA_HOME_11_X64
+          yes | $HOME/clean-sdk/cmdline-tools/cmdline-tools/bin/sdkmanager \
+            --sdk_root=$HOME/clean-sdk \
+            "platforms;android-10" \
+            "build-tools;26.0.2" \
+            "ndk;${{ matrix.ndk_version }}" \
+            "cmake;3.6.4111459" > /dev/null
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: JPEGCAM
-        path: app/build/outputs/apk/**/*.apk
-# Forcing GitHub to trigger
+          echo "sdk.dir=$HOME/clean-sdk" > local.properties
+          echo "ndk.dir=$HOME/clean-sdk/ndk/${{ matrix.ndk_version }}" >> local.properties
+
+      - name: Drop armeabi ABI filter (modern only)
+        if: matrix.variant == 'modern'
+        run: sed -i 's/"armeabi", //' app/build.gradle
+
+      - name: Build APK
+        run: |
+          export JAVA_HOME=$JAVA_HOME_8_X64
+          wget -q https://services.gradle.org/distributions/gradle-4.10.3-bin.zip
+          unzip -q gradle-4.10.3-bin.zip
+          ./gradle-4.10.3/bin/gradle assembleRelease --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: app/build/outputs/apk/**/*.apk
