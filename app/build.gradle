@@ -29,6 +29,11 @@ android {
         }
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
     // --- THE LINT FIX: Tell Android to shut up about Google Play rules ---
     lintOptions {
         checkReleaseBuilds false
