@@ -28,7 +28,7 @@ jobs:
         unzip -q commandlinetools-linux-8512546_latest.zip -d $HOME/clean-sdk/cmdline-tools
 
         export JAVA_HOME=$JAVA_HOME_11_X64
-        yes | $HOME/clean-sdk/cmdline-tools/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/clean-sdk "platforms;android-10" "build-tools;26.0.2" "ndk;16.1.4479499" "cmake;3.6.4111459" > /dev/null
+        yes | $HOME/clean-sdk/cmdline-tools/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/clean-sdk "platforms;android-10" "platforms;android-25" "build-tools;26.0.2" "ndk;16.1.4479499" "cmake;3.6.4111459" > /dev/null
 
         echo "sdk.dir=$HOME/clean-sdk" > local.properties
         echo "ndk.dir=$HOME/clean-sdk/ndk/16.1.4479499" >> local.properties
