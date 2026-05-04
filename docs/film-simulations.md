@@ -52,7 +52,15 @@ to the live viewfinder. No software processing added.
 
 ---
 
-## Option 3: Hybrid ISP + GPU LUT + Software Finishing
+## Option 3: Hybrid ISP + GPU LUT + Software Finishing ⛔ NOT VIABLE
+
+> **Dead end confirmed.** Android 2.3.7 (API 10) does not provide the
+> `GL_OES_EGL_image_external` extension required to route the camera preview
+> through an OpenGL ES fragment shader. This was verified by the original
+> developer during early LUT development. Option 3 cannot be implemented on
+> BIONZ X hardware without a platform upgrade.
+
+
 
 ### Summary
 

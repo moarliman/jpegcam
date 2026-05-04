@@ -160,6 +160,8 @@ public class RecipeManager {
             p.sharpness       = json.optInt("sharpness", 0);
             p.sharpnessGain   = json.optInt("sharpnessGain", 0);
             p.vignetteHardware = json.optInt("vignetteHardware", 0);
+            p.filmSimulation  = json.optString("filmSimulation", "NONE");
+            p.softwareEffectsEnabled = json.optBoolean("softwareEffectsEnabled", true);
             JSONArray arr = json.optJSONArray("advMatrix");
             if (arr != null && arr.length() == 9) {
                 for (int i = 0; i < 9; i++) p.advMatrix[i] = arr.getInt(i);
@@ -211,7 +213,9 @@ public class RecipeManager {
             sb.append("  \"proColorMode\": \"").append(p.proColorMode).append("\",\n");
             sb.append("  \"sharpness\": ").append(p.sharpness).append(",\n");
             sb.append("  \"sharpnessGain\": ").append(p.sharpnessGain).append(",\n");
-            sb.append("  \"vignetteHardware\": ").append(p.vignetteHardware).append("\n");
+            sb.append("  \"vignetteHardware\": ").append(p.vignetteHardware).append(",\n");
+            sb.append("  \"filmSimulation\": \"").append(p.filmSimulation != null ? p.filmSimulation : "NONE").append("\",\n");
+            sb.append("  \"softwareEffectsEnabled\": ").append(p.softwareEffectsEnabled).append("\n");
             sb.append("}");
             FileOutputStream fos = new FileOutputStream(file);
             fos.write(sb.toString().getBytes("UTF-8"));

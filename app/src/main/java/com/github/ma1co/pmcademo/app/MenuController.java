@@ -401,9 +401,9 @@ public class MenuController {
     public boolean dispatchHudLaunch() {
         if (!isOpen) return false;
         if (currentMainTab == 0 && currentPage == 1 && selection == 1) { host.onHudModeRequested(10); return true; }
-        if (currentMainTab == 0 && currentPage == 1 && selection == 2) { host.onHudModeRequested(6);  return true; }
-        if (currentMainTab == 0 && currentPage == 1 && selection == 3) { host.onHudModeRequested(3);  return true; }
-        if (currentMainTab == 0 && currentPage == 1 && selection == 4) { host.onHudModeRequested(9);  return true; }
+        if (currentMainTab == 0 && currentPage == 1 && selection == 3) { host.onHudModeRequested(6);  return true; }
+        if (currentMainTab == 0 && currentPage == 1 && selection == 4) { host.onHudModeRequested(3);  return true; }
+        if (currentMainTab == 0 && currentPage == 1 && selection == 5) { host.onHudModeRequested(9);  return true; }
         if (currentMainTab == 0 && currentPage == 2 && selection == 0) { host.onHudModeRequested(2);  return true; }
         if (currentMainTab == 0 && currentPage == 2 && selection == 1) { host.onHudModeRequested(7);  return true; }
         if (currentMainTab == 0 && currentPage == 2 && selection == 2) { host.onHudModeRequested(1);  return true; }
@@ -457,10 +457,14 @@ public class MenuController {
                 rm.setCurrentSlot(Math.max(0, Math.min(9, rm.getCurrentSlot() + dir)));
                 host.onLutPreloadNeeded();
             } else if (sel == 2) {
+                String[] names = FilmPresetManager.getNames();
+                int idx = 0; for (int i = 0; i < names.length; i++) if (names[i].equals(p.filmSimulation)) idx = i;
+                FilmPresetManager.applyPreset(p, names[(idx + dir + names.length) % names.length]);
+            } else if (sel == 3) {
                 String[] styles = {"Standard","Vivid","Neutral","Clear","Deep","Light","Portrait","Landscape","Sunset","Night Scene","Autumn Leaves","Black & White","Sepia"};
                 int idx = 0; for (int i = 0; i < styles.length; i++) if (styles[i].equalsIgnoreCase(p.colorMode)) idx = i;
                 p.colorMode = styles[(idx + dir + styles.length) % styles.length];
-            } else if (sel == 4) {
+            } else if (sel == 5) {
                 String[] dro = {"OFF","AUTO","LVL 1","LVL 2","LVL 3","LVL 4","LVL 5"};
                 int idx = 0; for (int i = 0; i < dro.length; i++) if (dro[i].equalsIgnoreCase(p.dro)) idx = i;
                 p.dro = dro[(idx + dir + dro.length) % dro.length];
@@ -474,18 +478,19 @@ public class MenuController {
                 p.pictureEffect = eff[(idx + dir + eff.length) % eff.length];
             } else if (sel == 2) p.softFocusLevel = Math.max(1, Math.min(3, p.softFocusLevel + dir));
         } else if (currentPage == 4) {
-            if (sel == 0) { if (dir > 0 && p.lutIndex < rm.getRecipeNames().size()-1) p.lutIndex++; else if (dir < 0 && p.lutIndex > 0) p.lutIndex--; }
-            else if (sel == 1 && p.lutIndex > 0) p.opacity = Math.max(10, Math.min(100, p.opacity + dir * 10));
-            else if (sel == 2) p.grain = Math.max(0, Math.min(5, p.grain + dir));
-            else if (sel == 3 && p.grain > 0) p.grainSize = Math.max(0, Math.min(2, p.grainSize + dir));
-            
+            if (sel == 0) p.softwareEffectsEnabled = !p.softwareEffectsEnabled;
+            else if (sel == 1) { if (dir > 0 && p.lutIndex < rm.getRecipeNames().size()-1) p.lutIndex++; else if (dir < 0 && p.lutIndex > 0) p.lutIndex--; }
+            else if (sel == 2 && p.lutIndex > 0) p.opacity = Math.max(10, Math.min(100, p.opacity + dir * 10));
+            else if (sel == 3) p.grain = Math.max(0, Math.min(5, p.grain + dir));
+            else if (sel == 4 && p.grain > 0) p.grainSize = Math.max(0, Math.min(2, p.grainSize + dir));
+
             // CHANGED: Use the dynamic array length instead of locking to 1
-            else if (sel == 4 && p.grain > 0) {
+            else if (sel == 5 && p.grain > 0) {
                 int maxEngineIndex = getGrainEngineOptions().length - 1;
                 p.advancedGrainExperimental = Math.max(0, Math.min(maxEngineIndex, p.advancedGrainExperimental + dir));
             }
-            
-            else if (sel == 5) p.vignette = Math.max(0, Math.min(5, p.vignette + dir));
+
+            else if (sel == 6) p.vignette = Math.max(0, Math.min(5, p.vignette + dir));
         } else if (currentPage == 5) {
             if (sel == 0) p.rollOff        = Math.max(0, Math.min(5, p.rollOff + dir));
             else if (sel == 1) p.shadowToe = Math.max(0, Math.min(2, p.shadowToe + dir));
@@ -564,7 +569,7 @@ public class MenuController {
 
         if (currentMainTab == 0) {
             if (currentPage == 1) {
-                ic = 5;
+                ic = 6;
                 String raw = p.profileName != null ? p.profileName : "";
                 while (raw.length() < 8) raw += " ";
                 if (raw.length() > 8) raw = raw.substring(0, 8);
@@ -584,9 +589,10 @@ public class MenuController {
                 String activeName = (p.profileName != null && !p.profileName.isEmpty()) ? p.profileName : "UNNAMED";
                 setRow(0, "Recipe Slot (1-10)",  String.valueOf(rm.getCurrentSlot() + 1));
                 setRow(1, "Recipe Manager",      "< " + activeName + " >");
-                setRow(2, "Foundation Base",       fnd);
-                setRow(3, "Tone & Style",          ts);
-                setRow(4, "DRO (Dynamic Range)",   p.dro != null ? p.dro.toUpperCase() : "OFF");
+                setRow(2, "Film Simulation",     p.filmSimulation != null ? p.filmSimulation : "NONE");
+                setRow(3, "Foundation Base",       fnd);
+                setRow(4, "Tone & Style",          ts);
+                setRow(5, "DRO (Dynamic Range)",   p.dro != null ? p.dro.toUpperCase() : "OFF");
             } else if (currentPage == 2) {
                 ic = 4;
                 String ab = p.wbShift == 0 ? "0" : (p.wbShift < 0 ? "B"+Math.abs(p.wbShift) : "A"+p.wbShift);
@@ -607,18 +613,19 @@ public class MenuController {
                 setRow(1, "Effect Tweaker",       param);
                 setRow(2, "Edge Shading Editor",  shade);
             } else if (currentPage == 4) {
-                ic = 6;
-                
+                ic = 7;
+
                 // CHANGED: Load dynamic labels and calculate the safe index
                 String[] engineLbls = getGrainEngineOptions();
                 int safeEngineIdx = Math.max(0, Math.min(engineLbls.length - 1, p.advancedGrainExperimental));
 
-                setRow(0, "LUT File",    rm.getRecipeNames().get(p.lutIndex));
-                setRow(1, "LUT Opacity", p.opacity + "%");
-                setRow(2, "Grain Amount",amtLbls[Math.max(0,Math.min(5,p.grain))]);
-                setRow(3, "Grain Size",  sizeLbls[Math.max(0,Math.min(2,p.grainSize))]);
-                setRow(4, "Grain Engine",engineLbls[safeEngineIdx]); // CHANGED
-                setRow(5, "Vignette",    amtLbls[Math.max(0,Math.min(5,p.vignette))]);
+                setRow(0, "SW Effects",  p.softwareEffectsEnabled ? "ON" : "OFF");
+                setRow(1, "LUT File",    rm.getRecipeNames().get(p.lutIndex));
+                setRow(2, "LUT Opacity", p.opacity + "%");
+                setRow(3, "Grain Amount",amtLbls[Math.max(0,Math.min(5,p.grain))]);
+                setRow(4, "Grain Size",  sizeLbls[Math.max(0,Math.min(2,p.grainSize))]);
+                setRow(5, "Grain Engine",engineLbls[safeEngineIdx]); // CHANGED
+                setRow(6, "Vignette",    amtLbls[Math.max(0,Math.min(5,p.vignette))]);
             } else if (currentPage == 5) {
                 ic = 7; // CHANGED TO 7
                 setRow(0, "Highlight Roll-Off",    amtLbls[Math.max(0,Math.min(5,p.rollOff))]);
@@ -678,8 +685,8 @@ public class MenuController {
                     ||"illust".equals(eff)||"watercolor".equals(eff)||"part-color".equals(eff)||"miniature".equals(eff);
         }
         if (currentMainTab == 0 && currentPage == 4) {
-            if (i == 1) return p.lutIndex > 0;
-            if (i == 3 || i == 4) return p.grain > 0;
+            if (i == 2) return p.lutIndex > 0;
+            if (i == 4 || i == 5) return p.grain > 0;
         }
         return true;
     }

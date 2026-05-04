@@ -49,6 +49,21 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
     // Set to true to see diagnostic Toasts, false for clean public release
     public static final boolean DEBUG_MODE = false;
 
+    // Runs at class-load time, before onCreate() — proves the class passes Dalvik verification
+    static {
+        try {
+            String[] paths = { "/mnt/sdcard/JPEGCAM_BOOT.TXT", "/sdcard/JPEGCAM_BOOT.TXT",
+                               "/storage/sdcard0/JPEGCAM_BOOT.TXT", "/storage/sdcard1/JPEGCAM_BOOT.TXT" };
+            for (String p : paths) {
+                try {
+                    java.io.FileOutputStream f = new java.io.FileOutputStream(p);
+                    f.write("MainActivity class loaded OK\n".getBytes());
+                    f.close();
+                } catch (Exception ignored) {}
+            }
+        } catch (Throwable ignored) {}
+    }
+
     private SonyCameraManager cameraManager;
     private InputManager inputManager;
     private RecipeManager recipeManager;
@@ -238,6 +253,26 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            public void uncaughtException(Thread t, Throwable ex) {
+                try {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("=== CRASH ===\n");
+                    sb.append(ex.getClass().getName()).append(": ").append(ex.getMessage()).append("\n");
+                    for (StackTraceElement e : ex.getStackTrace()) sb.append("  at ").append(e).append("\n");
+                    Throwable cause = ex.getCause();
+                    if (cause != null) sb.append("Caused by: ").append(cause.getClass().getName()).append(": ").append(cause.getMessage()).append("\n");
+                    byte[] data = sb.toString().getBytes("UTF-8");
+                    String[] paths = { "/mnt/sdcard/JPEGCAM_CRASH.TXT", "/sdcard/JPEGCAM_CRASH.TXT",
+                                       "/storage/sdcard0/JPEGCAM_CRASH.TXT", "/storage/sdcard1/JPEGCAM_CRASH.TXT" };
+                    for (String p : paths) {
+                        try { java.io.FileOutputStream fos = new java.io.FileOutputStream(p, true); fos.write(data); fos.close(); } catch (Exception ignored) {}
+                    }
+                } catch (Exception ignored) {}
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
+        });
+
         super.onCreate(savedInstanceState);
 
         // --- AUTOMATIC HARDWARE SCANNER ---
@@ -274,6 +309,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
         cameraManager = new SonyCameraManager(this);
         inputManager = new InputManager(this);
         recipeManager = new RecipeManager();
+        FilmPresetManager.init(this);
         matrixManager = new MatrixManager(); // <-- NEW
         matrixManager.scanMatrices();        // <-- NEW
         factoryBurnMatrices();               // <-- NEW: Generate defaults if empty!

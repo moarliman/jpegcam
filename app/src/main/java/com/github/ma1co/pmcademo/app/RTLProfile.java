@@ -58,6 +58,10 @@ public class RTLProfile {
     // 0 = OFF | 1 = STANDARD | 2 = RICH
     public int bloom = 0;
 
+    // --- Film Simulation ---
+    public String filmSimulation = "NONE"; // display label; applied on selection, then user can override
+    public boolean softwareEffectsEnabled = true;
+
     public RTLProfile(int slotIndex) {
         this.profileName = "RECIPE " + (slotIndex + 1);
     }

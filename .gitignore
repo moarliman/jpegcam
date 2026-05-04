@@ -3,3 +3,6 @@
 /build
 /local.properties
 /*.iml
+app/.cxx/
+app/src/main/cpp/libjpeg-turbo/
+app/src/main/cpp/stb_image.h

@@ -1,0 +1,65 @@
+[
+  {
+    "name": "PROVIA",
+    "colorMode": "standard",
+    "contrast": 0, "saturation": 0, "sharpness": 0, "sharpnessGain": 0,
+    "colorDepthRed": 0, "colorDepthGreen": 0, "colorDepthBlue": 0,
+    "colorDepthCyan": 0, "colorDepthMagenta": 0, "colorDepthYellow": 0,
+    "advMatrix": [100,0,0,0,100,0,0,0,100],
+    "dro": "OFF", "wbShift": 0, "wbShiftGM": 0
+  },
+  {
+    "name": "VELVIA",
+    "colorMode": "vivid",
+    "contrast": 2, "saturation": 4, "sharpness": 1, "sharpnessGain": 1,
+    "colorDepthRed": 2, "colorDepthGreen": 1, "colorDepthBlue": 2,
+    "colorDepthCyan": 0, "colorDepthMagenta": 2, "colorDepthYellow": 2,
+    "advMatrix": [102,-1,-1,-1,102,-1,-1,-1,102],
+    "dro": "OFF", "wbShift": 0, "wbShiftGM": 0
+  },
+  {
+    "name": "ASTIA",
+    "colorMode": "portrait",
+    "contrast": -1, "saturation": -1, "sharpness": 0, "sharpnessGain": 0,
+    "colorDepthRed": 1, "colorDepthGreen": 0, "colorDepthBlue": 0,
+    "colorDepthCyan": 0, "colorDepthMagenta": 1, "colorDepthYellow": 0,
+    "advMatrix": [100,0,0,0,100,0,0,0,100],
+    "dro": "OFF", "wbShift": 1, "wbShiftGM": 0
+  },
+  {
+    "name": "CLASSIC C",
+    "colorMode": "standard",
+    "contrast": 1, "saturation": -2, "sharpness": 0, "sharpnessGain": 0,
+    "colorDepthRed": -1, "colorDepthGreen": 0, "colorDepthBlue": 1,
+    "colorDepthCyan": 1, "colorDepthMagenta": 0, "colorDepthYellow": -1,
+    "advMatrix": [98,2,0,0,100,0,2,0,98],
+    "dro": "AUTO", "wbShift": 0, "wbShiftGM": 0
+  },
+  {
+    "name": "PRO NEG S",
+    "colorMode": "standard",
+    "contrast": -1, "saturation": -1, "sharpness": -1, "sharpnessGain": 0,
+    "colorDepthRed": 0, "colorDepthGreen": 0, "colorDepthBlue": 0,
+    "colorDepthCyan": 0, "colorDepthMagenta": 0, "colorDepthYellow": 0,
+    "advMatrix": [100,0,0,0,100,0,0,0,100],
+    "dro": "AUTO", "wbShift": 0, "wbShiftGM": 0
+  },
+  {
+    "name": "ETERNA",
+    "colorMode": "standard",
+    "contrast": -2, "saturation": -2, "sharpness": -1, "sharpnessGain": 0,
+    "colorDepthRed": -1, "colorDepthGreen": 0, "colorDepthBlue": 1,
+    "colorDepthCyan": 0, "colorDepthMagenta": -1, "colorDepthYellow": -1,
+    "advMatrix": [97,1,2,0,100,0,1,1,98],
+    "dro": "LVL3", "wbShift": -1, "wbShiftGM": 0
+  },
+  {
+    "name": "ACROS",
+    "colorMode": "b-w",
+    "contrast": 1, "saturation": 0, "sharpness": 1, "sharpnessGain": 1,
+    "colorDepthRed": 0, "colorDepthGreen": 0, "colorDepthBlue": 0,
+    "colorDepthCyan": 0, "colorDepthMagenta": 0, "colorDepthYellow": 0,
+    "advMatrix": [100,0,0,0,100,0,0,0,100],
+    "dro": "OFF", "wbShift": 0, "wbShiftGM": 0
+  }
+]

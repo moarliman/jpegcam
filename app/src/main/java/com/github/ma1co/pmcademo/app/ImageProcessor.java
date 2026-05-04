@@ -106,14 +106,24 @@ public class ImageProcessor {
                 }
                 // --- END NEW ---
 
+                boolean sw = p.softwareEffectsEnabled;
                 if (mEngine.applyLutToJpeg(
                     original.getAbsolutePath(), outFile.getAbsolutePath(),
-                    scale, p.opacity, p.grain, p.grainSize, p.vignette, p.rollOff,
-                    p.colorChrome, p.chromeBlue, p.shadowToe, p.subtractiveSat,
-                    p.halation, p.bloom, 
-                    cxxGrainEngine, 
-                    finalJpegQuality, 
-                    applyCrop)) {  // <--- ADDED HERE
+                    scale,
+                    sw ? p.opacity : 0,
+                    sw ? p.grain : 0,
+                    sw ? p.grainSize : 0,
+                    sw ? p.vignette : 0,
+                    sw ? p.rollOff : 0,
+                    sw ? p.colorChrome : 0,
+                    sw ? p.chromeBlue : 0,
+                    sw ? p.shadowToe : 0,
+                    sw ? p.subtractiveSat : 0,
+                    sw ? p.halation : 0,
+                    sw ? p.bloom : 0,
+                    sw ? cxxGrainEngine : 0,
+                    finalJpegQuality,
+                    applyCrop)) {
                 return "SAVED";
             }
             } catch (Exception e) { Log.e("COOKBOOK", "Java error: " + e.getMessage()); }
