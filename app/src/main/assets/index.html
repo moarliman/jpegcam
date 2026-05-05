@@ -201,15 +201,17 @@
         #tune-panel { padding: 20px; max-width: 600px; margin: 0 auto; padding-bottom: 60px; }
         .tune-section { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 15px; }
         .tune-section h4 { margin: 0 0 15px; font-size: 11px; letter-spacing: 1.5px; color: var(--accent); text-transform: uppercase; }
-        .tune-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
+        .tune-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 10px; }
         .tune-row:last-child { margin-bottom: 0; }
-        .tune-label { font-size: 12px; font-weight: 700; color: var(--text-muted); min-width: 80px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .tune-value { font-size: 12px; font-weight: 700; color: var(--accent); min-width: 35px; text-align: right; font-family: monospace; }
-        .tune-slider { flex: 1; min-width: 0; -webkit-appearance: none; height: 4px; border-radius: 2px; background: var(--border-color); outline: none; cursor: pointer; }
-        .tune-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
-        .tune-select, .tune-input { background: #111; border: 1px solid var(--border-color); color: var(--text-main); padding: 7px 10px; border-radius: 6px; font-size: 12px; }
-        .tune-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .tune-matrix-cell { background: #111; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 4px; border-radius: 6px; font-size: 13px; font-weight: 700; text-align: center; width: 100%; box-sizing: border-box; }
+        .tune-label { font-size: 12px; font-weight: 700; color: var(--text-muted); min-width: 90px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tune-value { font-size: 12px; font-weight: 700; color: var(--accent); min-width: 40px; text-align: right; font-family: monospace; }
+        .tune-slider { flex: 1; min-width: 0; -webkit-appearance: none; height: 8px; border-radius: 4px; background: var(--border-color); outline: none; cursor: pointer; }
+        .tune-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        .tune-input { background: #111; border: 1px solid var(--border-color); color: var(--text-main); padding: 7px 10px; border-radius: 6px; font-size: 12px; }
+        .tune-picker { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+        .picker-btn { background: #222; border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 16px; border-radius: 6px; font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
+        .picker-btn:active { background: #333; }
+        .picker-val { flex: 1; text-align: center; font-size: 13px; color: var(--text-main); }
         .tune-hint { font-size: 11px; color: var(--text-muted); margin: 0 0 12px; letter-spacing: 0.3px; line-height: 1.5; }
         .preset-grid { display: flex; flex-wrap: wrap; gap: 8px; }
         .preset-btn { background: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; text-transform: uppercase; -webkit-tap-highlight-color: transparent; }
@@ -260,7 +262,11 @@
             <h4>RECIPE SLOT</h4>
             <div class="tune-row">
                 <span class="tune-label">ACTIVE SLOT</span>
-                <select class="tune-select" id="t-slot" onchange="tuneLoadSlot(this.value)" style="flex:1;max-width:180px"></select>
+                <div class="tune-picker">
+                    <button class="picker-btn" onclick="slotStep(-1)">&#9664;</button>
+                    <span class="picker-val" id="pv-slot">SLOT 1</span>
+                    <button class="picker-btn" onclick="slotStep(1)">&#9654;</button>
+                </div>
             </div>
             <div class="tune-row">
                 <span class="tune-label">SLOT NAME</span>
@@ -277,21 +283,27 @@
             <h4>BASE LOOK</h4>
             <div class="tune-row">
                 <span class="tune-label">CREATIVE STYLE</span>
-                <select class="tune-select" id="t-colorMode" onchange="tuneChange('colorMode',this.value)" style="flex:1;max-width:160px">
-                    <option value="standard">Standard</option><option value="vivid">Vivid</option><option value="neutral">Neutral</option><option value="portrait">Portrait</option><option value="landscape">Landscape</option><option value="sunset">Sunset</option><option value="bw">B&amp;W</option><option value="sepia">Sepia</option>
-                </select>
+                <div class="tune-picker">
+                    <button class="picker-btn" onclick="pickerStep('colorMode',-1)">&#9664;</button>
+                    <span class="picker-val" id="pv-colorMode">Standard</span>
+                    <button class="picker-btn" onclick="pickerStep('colorMode',1)">&#9654;</button>
+                </div>
             </div>
             <div class="tune-row">
                 <span class="tune-label">PRO COLOR MODE</span>
-                <select class="tune-select" id="t-proColorMode" onchange="tuneChange('proColorMode',this.value)" style="flex:1;max-width:160px">
-                    <option value="off">Off</option><option value="s-gamut">S-Gamut</option><option value="s-gamut3">S-Gamut3</option><option value="s-gamut3.cine">S-Gamut3.Cine</option>
-                </select>
+                <div class="tune-picker">
+                    <button class="picker-btn" onclick="pickerStep('proColorMode',-1)">&#9664;</button>
+                    <span class="picker-val" id="pv-proColorMode">Off</span>
+                    <button class="picker-btn" onclick="pickerStep('proColorMode',1)">&#9654;</button>
+                </div>
             </div>
             <div class="tune-row">
                 <span class="tune-label">DRO</span>
-                <select class="tune-select" id="t-dro" onchange="tuneChange('dro',this.value)" style="flex:1;max-width:160px">
-                    <option value="OFF">Off</option><option value="AUTO">Auto</option><option value="LVL 1">Level 1</option><option value="LVL 2">Level 2</option><option value="LVL 3">Level 3</option><option value="LVL 4">Level 4</option><option value="LVL 5">Level 5</option>
-                </select>
+                <div class="tune-picker">
+                    <button class="picker-btn" onclick="pickerStep('dro',-1)">&#9664;</button>
+                    <span class="picker-val" id="pv-dro">Off</span>
+                    <button class="picker-btn" onclick="pickerStep('dro',1)">&#9654;</button>
+                </div>
             </div>
         </div>
         <div class="tune-section">
@@ -305,13 +317,16 @@
             <h4>WHITE BALANCE</h4>
             <div class="tune-row">
                 <span class="tune-label">MODE</span>
-                <select class="tune-select" id="t-whiteBalance" onchange="tuneChange('whiteBalance',this.value)" style="flex:1;max-width:160px">
-                    <option value="auto">Auto</option><option value="daylight">Daylight</option><option value="shade">Shade</option><option value="cloudy-daylight">Cloudy</option><option value="incandescent">Incandescent</option><option value="fluorescent">Fluorescent</option><option value="color-temp">Kelvin</option>
-                </select>
+                <div class="tune-picker">
+                    <button class="picker-btn" onclick="pickerStep('whiteBalance',-1)">&#9664;</button>
+                    <span class="picker-val" id="pv-whiteBalance">Auto</span>
+                    <button class="picker-btn" onclick="pickerStep('whiteBalance',1)">&#9654;</button>
+                </div>
             </div>
             <div class="tune-row" id="kelvin-row" style="display:none">
                 <span class="tune-label">KELVIN</span>
-                <input type="number" class="tune-input" id="t-kelvin" min="2500" max="9900" step="100" value="5500" style="width:90px" onchange="tuneChange('colorTemperture',this.value)">
+                <input type="range" class="tune-slider" id="t-kelvin" min="2500" max="9900" step="100" value="5500" oninput="tuneChange('colorTemperture',this.value)">
+                <span class="tune-value" id="tv-kelvin">5500K</span>
             </div>
             <div class="tune-row"><span class="tune-label">SHIFT A/B</span><input type="range" class="tune-slider" id="t-wbShift" min="-7" max="7" step="1" value="0" oninput="tuneChange('wbShift',this.value)"><span class="tune-value" id="tv-wbShift">+0</span></div>
             <div class="tune-row"><span class="tune-label">SHIFT G/M</span><input type="range" class="tune-slider" id="t-wbShiftGM" min="-7" max="7" step="1" value="0" oninput="tuneChange('wbShiftGM',this.value)"><span class="tune-value" id="tv-wbShiftGM">+0</span></div>
@@ -327,17 +342,15 @@
         </div>
         <div class="tune-section">
             <h4>RGB MATRIX</h4>
-            <div class="tune-matrix">
-                <input type="number" class="tune-matrix-cell" id="t-m0" min="-200" max="200" value="100" onchange="tuneMatrixChange(0,this.value)">
-                <input type="number" class="tune-matrix-cell" id="t-m1" min="-200" max="200" value="0" onchange="tuneMatrixChange(1,this.value)">
-                <input type="number" class="tune-matrix-cell" id="t-m2" min="-200" max="200" value="0" onchange="tuneMatrixChange(2,this.value)">
-                <input type="number" class="tune-matrix-cell" id="t-m3" min="-200" max="200" value="0" onchange="tuneMatrixChange(3,this.value)">
-                <input type="number" class="tune-matrix-cell" id="t-m4" min="-200" max="200" value="100" onchange="tuneMatrixChange(4,this.value)">
-                <input type="number" class="tune-matrix-cell" id="t-m5" min="-200" max="200" value="0" onchange="tuneMatrixChange(5,this.value)">
-                <input type="number" class="tune-matrix-cell" id="t-m6" min="-200" max="200" value="0" onchange="tuneMatrixChange(6,this.value)">
-                <input type="number" class="tune-matrix-cell" id="t-m7" min="-200" max="200" value="0" onchange="tuneMatrixChange(7,this.value)">
-                <input type="number" class="tune-matrix-cell" id="t-m8" min="-200" max="200" value="100" onchange="tuneMatrixChange(8,this.value)">
-            </div>
+            <div class="tune-row"><span class="tune-label">R&#8594;R</span><input type="range" class="tune-slider" id="t-m0" min="-200" max="200" step="1" value="100" oninput="tuneMatrixChange(0,this.value)"><span class="tune-value" id="tv-m0">100</span></div>
+            <div class="tune-row"><span class="tune-label">R&#8594;G</span><input type="range" class="tune-slider" id="t-m1" min="-200" max="200" step="1" value="0" oninput="tuneMatrixChange(1,this.value)"><span class="tune-value" id="tv-m1">0</span></div>
+            <div class="tune-row"><span class="tune-label">R&#8594;B</span><input type="range" class="tune-slider" id="t-m2" min="-200" max="200" step="1" value="0" oninput="tuneMatrixChange(2,this.value)"><span class="tune-value" id="tv-m2">0</span></div>
+            <div class="tune-row"><span class="tune-label">G&#8594;R</span><input type="range" class="tune-slider" id="t-m3" min="-200" max="200" step="1" value="0" oninput="tuneMatrixChange(3,this.value)"><span class="tune-value" id="tv-m3">0</span></div>
+            <div class="tune-row"><span class="tune-label">G&#8594;G</span><input type="range" class="tune-slider" id="t-m4" min="-200" max="200" step="1" value="100" oninput="tuneMatrixChange(4,this.value)"><span class="tune-value" id="tv-m4">100</span></div>
+            <div class="tune-row"><span class="tune-label">G&#8594;B</span><input type="range" class="tune-slider" id="t-m5" min="-200" max="200" step="1" value="0" oninput="tuneMatrixChange(5,this.value)"><span class="tune-value" id="tv-m5">0</span></div>
+            <div class="tune-row"><span class="tune-label">B&#8594;R</span><input type="range" class="tune-slider" id="t-m6" min="-200" max="200" step="1" value="0" oninput="tuneMatrixChange(6,this.value)"><span class="tune-value" id="tv-m6">0</span></div>
+            <div class="tune-row"><span class="tune-label">B&#8594;G</span><input type="range" class="tune-slider" id="t-m7" min="-200" max="200" step="1" value="0" oninput="tuneMatrixChange(7,this.value)"><span class="tune-value" id="tv-m7">0</span></div>
+            <div class="tune-row"><span class="tune-label">B&#8594;B</span><input type="range" class="tune-slider" id="t-m8" min="-200" max="200" step="1" value="100" oninput="tuneMatrixChange(8,this.value)"><span class="tune-value" id="tv-m8">100</span></div>
             <div style="text-align:right;margin-top:10px">
                 <button class="action-btn secondary-btn" style="padding:6px 12px;font-size:10px;margin:0" onclick="tuneResetMatrix()">RESET IDENTITY</button>
             </div>
@@ -346,15 +359,19 @@
             <h4>PICTURE EFFECTS</h4>
             <div class="tune-row">
                 <span class="tune-label">EFFECT</span>
-                <select class="tune-select" id="t-pictureEffect" onchange="tuneChange('pictureEffect',this.value)" style="flex:1;max-width:160px">
-                    <option value="off">Off</option><option value="toy-camera">Toy Camera</option><option value="pop-color">Pop Color</option><option value="posterization">Posterization</option><option value="retro-photo">Retro Photo</option><option value="soft-high-key">Soft High-Key</option><option value="part-color">Part Color</option><option value="rough-mono">Rough Mono</option><option value="soft-focus">Soft Focus</option><option value="hdr-art">HDR Art</option><option value="richtone-mono">Rich-tone Mono</option><option value="miniature">Miniature</option><option value="watercolor">Watercolor</option><option value="illust">Illustration</option>
-                </select>
+                <div class="tune-picker">
+                    <button class="picker-btn" onclick="pickerStep('pictureEffect',-1)">&#9664;</button>
+                    <span class="picker-val" id="pv-pictureEffect">Off</span>
+                    <button class="picker-btn" onclick="pickerStep('pictureEffect',1)">&#9654;</button>
+                </div>
             </div>
             <div class="tune-row">
                 <span class="tune-label">TOY / PART COLOR</span>
-                <select class="tune-select" id="t-peToyCameraTone" onchange="tuneChange('peToyCameraTone',this.value)" style="flex:1;max-width:160px">
-                    <option value="normal">Normal</option><option value="cool">Cool</option><option value="warm">Warm</option><option value="green">Green</option><option value="magenta">Magenta</option><option value="red">Red</option><option value="yellow">Yellow</option><option value="blue">Blue</option>
-                </select>
+                <div class="tune-picker">
+                    <button class="picker-btn" onclick="pickerStep('peToyCameraTone',-1)">&#9664;</button>
+                    <span class="picker-val" id="pv-peToyCameraTone">Normal</span>
+                    <button class="picker-btn" onclick="pickerStep('peToyCameraTone',1)">&#9654;</button>
+                </div>
             </div>
             <div class="tune-row"><span class="tune-label">EFFECT LEVEL</span><input type="range" class="tune-slider" id="t-softFocusLevel" min="1" max="3" step="1" value="1" oninput="tuneChange('softFocusLevel',this.value)"><span class="tune-value" id="tv-softFocusLevel">1</span></div>
         </div>
@@ -729,17 +746,43 @@
                 const list = await listRes.json();
                 const active = await activeRes.json();
                 tuneActiveSlot = active.active;
-                const sel = document.getElementById('t-slot');
-                sel.innerHTML = '';
-                list.forEach((s, i) => {
-                    const opt = document.createElement('option');
-                    opt.value = i;
-                    opt.text = (i + 1) + ': ' + s.name;
-                    if (i === tuneActiveSlot) opt.selected = true;
-                    sel.appendChild(opt);
-                });
+                slotNames = list.map(function(s, i) { return (i + 1) + ': ' + s.name; });
+                document.getElementById('pv-slot').textContent = slotNames[tuneActiveSlot] || ('SLOT ' + (tuneActiveSlot + 1));
                 document.getElementById('t-name').value = tuneState.profileName || '';
             } catch(e) {}
+        }
+
+        const PICKER_OPTIONS = {
+            colorMode:       [{v:'standard',l:'Standard'},{v:'vivid',l:'Vivid'},{v:'neutral',l:'Neutral'},{v:'portrait',l:'Portrait'},{v:'landscape',l:'Landscape'},{v:'sunset',l:'Sunset'},{v:'bw',l:'B&W'},{v:'sepia',l:'Sepia'}],
+            proColorMode:    [{v:'off',l:'Off'},{v:'s-gamut',l:'S-Gamut'},{v:'s-gamut3',l:'S-Gamut3'},{v:'s-gamut3.cine',l:'S-Gamut3.Cine'}],
+            dro:             [{v:'OFF',l:'Off'},{v:'AUTO',l:'Auto'},{v:'LVL 1',l:'Level 1'},{v:'LVL 2',l:'Level 2'},{v:'LVL 3',l:'Level 3'},{v:'LVL 4',l:'Level 4'},{v:'LVL 5',l:'Level 5'}],
+            whiteBalance:    [{v:'auto',l:'Auto'},{v:'daylight',l:'Daylight'},{v:'shade',l:'Shade'},{v:'cloudy-daylight',l:'Cloudy'},{v:'incandescent',l:'Incandescent'},{v:'fluorescent',l:'Fluorescent'},{v:'color-temp',l:'Kelvin'}],
+            pictureEffect:   [{v:'off',l:'Off'},{v:'toy-camera',l:'Toy Camera'},{v:'pop-color',l:'Pop Color'},{v:'posterization',l:'Posterization'},{v:'retro-photo',l:'Retro Photo'},{v:'soft-high-key',l:'Soft High-Key'},{v:'part-color',l:'Part Color'},{v:'rough-mono',l:'Rough Mono'},{v:'soft-focus',l:'Soft Focus'},{v:'hdr-art',l:'HDR Art'},{v:'richtone-mono',l:'Rich-tone Mono'},{v:'miniature',l:'Miniature'},{v:'watercolor',l:'Watercolor'},{v:'illust',l:'Illustration'}],
+            peToyCameraTone: [{v:'normal',l:'Normal'},{v:'cool',l:'Cool'},{v:'warm',l:'Warm'},{v:'green',l:'Green'},{v:'magenta',l:'Magenta'},{v:'red',l:'Red'},{v:'yellow',l:'Yellow'},{v:'blue',l:'Blue'}]
+        };
+        let pickerValues = {};
+        let slotNames = [];
+
+        function pickerStep(field, dir) {
+            const opts = PICKER_OPTIONS[field];
+            let idx = opts.findIndex(function(o) { return o.v === pickerValues[field]; });
+            if (idx === -1) idx = 0;
+            idx = (idx + dir + opts.length) % opts.length;
+            pickerValues[field] = opts[idx].v;
+            document.getElementById('pv-' + field).textContent = opts[idx].l;
+            tuneChange(field, opts[idx].v);
+        }
+
+        function pickerSet(field, val) {
+            const opts = PICKER_OPTIONS[field];
+            let opt = opts.find(function(o) { return o.v === val; });
+            if (!opt) opt = opts[0];
+            pickerValues[field] = opt.v;
+            document.getElementById('pv-' + field).textContent = opt.l;
+        }
+
+        function slotStep(dir) {
+            tuneLoadSlot((tuneActiveSlot + dir + 10) % 10);
         }
 
         function tuneRender() {
@@ -754,10 +797,13 @@
             set('t-cdBlue', s.colorDepthBlue); set('t-cdCyan', s.colorDepthCyan);
             set('t-cdMagenta', s.colorDepthMagenta); set('t-cdYellow', s.colorDepthYellow);
             set('t-softFocusLevel', s.softFocusLevel);
-            set('t-colorMode', s.colorMode); set('t-proColorMode', s.proColorMode);
-            set('t-pictureEffect', s.pictureEffect); set('t-whiteBalance', s.whiteBalance);
-            set('t-dro', s.dro); set('t-peToyCameraTone', s.peToyCameraTone);
-            if (s.advMatrix) { for (let i = 0; i < 9; i++) set('t-m' + i, s.advMatrix[i]); }
+            pickerSet('colorMode', s.colorMode); pickerSet('proColorMode', s.proColorMode);
+            pickerSet('pictureEffect', s.pictureEffect); pickerSet('whiteBalance', s.whiteBalance);
+            pickerSet('dro', s.dro); pickerSet('peToyCameraTone', s.peToyCameraTone);
+            const kelvin = s.colorTemperture || 5500;
+            set('t-kelvin', kelvin);
+            document.getElementById('tv-kelvin').textContent = kelvin + 'K';
+            if (s.advMatrix) { for (let i = 0; i < 9; i++) { set('t-m' + i, s.advMatrix[i]); document.getElementById('tv-m' + i).textContent = s.advMatrix[i]; } }
             document.getElementById('kelvin-row').style.display = s.whiteBalance === 'color-temp' ? 'flex' : 'none';
             tuneUpdateLabels();
             document.getElementById('t-name').value = s.profileName || '';
@@ -779,6 +825,7 @@
             const num = parseFloat(val);
             tuneState[key] = isNaN(num) ? val : num;
             if (key === 'whiteBalance') document.getElementById('kelvin-row').style.display = val === 'color-temp' ? 'flex' : 'none';
+            if (key === 'colorTemperture') document.getElementById('tv-kelvin').textContent = val + 'K';
             tuneUpdateLabels();
             clearTimeout(tuneDebounce);
             tuneDebounce = setTimeout(tuneApply, 150);
@@ -787,6 +834,7 @@
         function tuneMatrixChange(i, val) {
             if (!tuneState.advMatrix) tuneState.advMatrix = [100,0,0,0,100,0,0,0,100];
             tuneState.advMatrix[i] = parseInt(val) || 0;
+            document.getElementById('tv-m' + i).textContent = tuneState.advMatrix[i];
             clearTimeout(tuneDebounce);
             tuneDebounce = setTimeout(tuneApply, 150);
         }
@@ -817,7 +865,7 @@
 
         function tuneResetMatrix() {
             tuneState.advMatrix = [100,0,0,0,100,0,0,0,100];
-            for (let i = 0; i < 9; i++) { const el = document.getElementById('t-m' + i); if (el) el.value = tuneState.advMatrix[i]; }
+            for (let i = 0; i < 9; i++) { const el = document.getElementById('t-m' + i); if (el) { el.value = tuneState.advMatrix[i]; document.getElementById('tv-m' + i).textContent = tuneState.advMatrix[i]; } }
             clearTimeout(tuneDebounce);
             tuneDebounce = setTimeout(tuneApply, 150);
         }
