@@ -12,9 +12,11 @@ JPEG.CAM is a custom Android app installed on Sony BIONZ X cameras via PMCA (Pla
 
 ## Building
 
-**All builds happen via GitHub Actions only — never suggest local `./gradlew` commands.** Pushing to any branch triggers an APK build. The workflow produces two artifacts: `JPEGCAM-legacy` (NDK r16, both `armeabi` + `armeabi-v7a`) and `JPEGCAM-modern` (NDK r21, `armeabi-v7a` only).
+**All builds happen via GitHub Actions only — never suggest local `./gradlew` commands.** Pushing to any branch triggers an APK build. The workflow produces a single APK artifact (`JPEGCAM`) built with NDK 16.1, targeting `armeabi-v7a`.
 
-The build downloads libjpeg-turbo 2.1.5.1 and stb_image.h at build time — they are not vendored.
+Toolchain specifics (relevant if editing CI): Gradle 4.10.3 (downloaded directly, not the wrapper), Java 8 for the build step, Java 11 for `sdkmanager`, SDK packages `platforms;android-10`, `platforms;android-25`, `build-tools;26.0.2`, `cmake;3.6.4111459`.
+
+libjpeg-turbo 2.1.5.1 and stb_image.h are downloaded at build time — they are not vendored.
 
 ## Testing
 
@@ -32,8 +34,10 @@ There are no automated tests. All validation is manual testing on physical Sony 
 2. **C++11 / NDK: NO NEON SIMD.** Scalar code only. Must compile with `gnustl_static`.
 3. **Memory.** Use libjpeg-turbo (not Android built-ins) for JPEG/EXIF. Prefer raw binary parsing to avoid OOM on 24MP images.
 4. **Modular assets.** LUTs and matrices live as files on the SD card — never hardcode them in Java arrays.
-5. **MainActivity.java is a lightweight router only.** All new logic belongs in dedicated managers.
-6. **Do not auto-import any library not already in `app/build.gradle`.**
+5. **LUT filenames: 8 characters or fewer** (e.g. `Kodak400.cube`). Longer names are invisible to the BIONZ X FAT32 filesystem.
+6. **No GPU LUT preview.** `GL_OES_EGL_image_external` is unavailable on API 10 — routing the camera preview through an OpenGL shader cannot be implemented on this hardware. Do not propose it.
+7. **MainActivity.java is a lightweight router only.** All new logic belongs in dedicated managers.
+8. **Do not auto-import any library not already in `app/build.gradle`.**
 
 ## Code Change Rules
 
@@ -59,6 +63,7 @@ MainActivity (lightweight router)
     │
     ├── RecipeManager         — 10 recipe slots; each slot is an RTLProfile
     │       └── RTLProfile    — LUT name + all effect parameters
+    ├── FilmPresetManager     — built-in film simulation presets from assets/film_presets.json
     ├── MatrixManager         — RGB color matrix files on SD card
     ├── LensProfileManager    — lens calibration profiles
     │
@@ -78,6 +83,7 @@ MainActivity (lightweight router)
 |---|---|
 | `native-lib.cpp` | JNI bridge — JPEG decode/encode, LUT loading (`.cube`, `.cub`, `.png` HaldCLUT), trilinear interpolation |
 | `process_kernel.h` | All pixel-level effects: grain, vignette, bloom, halation, roll-off, chroma, overlay blending, color depth |
+| `api10_compat.c` | Shims for libc symbols missing from API 10 (bridges NDK r16 against the older platform) |
 
 CMake disables SIMD explicitly. C++ flags: `-O3 -ffast-math`.
 
@@ -91,7 +97,21 @@ CMake disables SIMD explicitly. C++ flags: `-O3 -ffast-math`.
 
 When proposing camera parameter values, verify they are within these hardware limits before suggesting them.
 
+### SD Card Directory Layout
+
+All app files live under `JPEGCAM/` at the storage root. `Filepaths.java` probes multiple mount points (`/storage/sdcard1`, `/mnt/sdcard`, etc.) for multi-slot cameras.
+
+```
+JPEGCAM/
+    LUTS/       — user LUT files (.cube, .cub, .png HaldCLUT)
+    GRAIN/      — grain texture PNGs (port400.png, neo400.png shipped as defaults)
+    RECIPES/    — recipe slot JSON files
+    LENSES/     — lens calibration profiles
+    GRADED/     — output directory for processed JPEGs
+```
+
 ## Reference
 
 - **OpenMemories-Framework** (`https://github.com/ma1co/openmemories-framework`) — authoritative source for Sony camera API behavior. Consult when unsure how the camera API works.
 - **PARAMS.TXT** (in repo root, when present) — live hardware capability manifest for the target camera; always check it before suggesting parameter values.
+- **camera-recipe-hub** — companion web platform where recipes and LUTs are created. Separate repository.

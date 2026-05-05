@@ -14,19 +14,6 @@ android {
         versionCode 18
         versionName "2.01"
 
-        externalNativeBuild {
-            cmake {
-                cppFlags ""
-                // THE SILVER BULLET: Forces CMake to build for max speed
-                // ANDROID_STL=gnustl_static required for NDK r16 + API 10 compatibility
-                arguments "-DCMAKE_BUILD_TYPE=Release", "-DANDROID_STL=gnustl_static"
-            }
-        }
-
-        // armeabi was dropped in NDK r17; armeabi-v7a covers all BIONZ X cameras
-        ndk {
-            abiFilters "armeabi-v7a"
-        }
     }
 
     compileOptions {
@@ -49,12 +36,6 @@ android {
         }
     }
     
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-        }
-    }
-
     // Dynamically rename the final output file based on versionName
     applicationVariants.all { variant ->
         variant.outputs.all {
