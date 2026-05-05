@@ -32,7 +32,7 @@ import java.util.List;
 public class MainActivity extends Activity implements SurfaceHolder.Callback,
     SonyCameraManager.CameraEventListener, InputManager.InputListener,
     ConnectivityManager.StatusUpdateListener, PlaybackController.HostCallback,
-    MenuController.HostCallback, HudController.HostCallback {
+    MenuController.HostCallback, HudController.HostCallback, HttpServer.Callback {
 
     public static final boolean DEBUG_MODE = false;
 
@@ -243,6 +243,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
         matrixManager.scanMatrices();
         factoryBurnMatrices();
         connectivityManager = new ConnectivityManager(this, this);
+        connectivityManager.getServer().setCallback(this);
 
         recipeManager.loadPreferences();
 
@@ -1050,12 +1051,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
     @Override public FrameLayout getMainUIContainer() { return mainUIContainer; }
     @Override public int         getDisplayState()    { return displayState; }
 
-    // --- MenuController.HostCallback ---
+    // --- MenuController.HostCallback / HttpServer.Callback ---
     @Override public RecipeManager       getRecipeManager()       { return recipeManager; }
     @Override public ConnectivityManager getConnectivityManager() { return connectivityManager; }
     @Override public MatrixManager       getMatrixManager()       { return matrixManager; }
     @Override public Camera              getCamera()              { return cameraManager != null ? cameraManager.getCamera() : null; }
     @Override public String              getAppVersion()          { return getPackageManager() != null ? tryGetVersion() : "?"; }
+    @Override public void                runOnMainThread(Runnable r) { uiHandler.post(r); }
 
     private String tryGetVersion() {
         try { return getPackageManager().getPackageInfo(getPackageName(), 0).versionName; } catch (Exception e) { return "?"; }

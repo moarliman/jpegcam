@@ -18,15 +18,133 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import fi.iki.elonen.NanoHTTPD;
 
 public class HttpServer extends NanoHTTPD {
     public static final int PORT = 8080;
     private Context context;
+    private Callback callback;
+
+    public interface Callback {
+        RecipeManager getRecipeManager();
+        android.hardware.Camera getCamera();
+        void runOnMainThread(Runnable r);
+    }
 
     public HttpServer(Context context) {
         super(PORT);
         this.context = context;
+    }
+
+    public void setCallback(Callback cb) { this.callback = cb; }
+
+    // Dispatches r on the main thread and blocks until it completes (max 3s).
+    private void runOnMainThreadAndWait(final Runnable r) {
+        if (callback == null) return;
+        final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+        callback.runOnMainThread(new Runnable() {
+            public void run() {
+                try { r.run(); } finally { latch.countDown(); }
+            }
+        });
+        try { latch.await(3, java.util.concurrent.TimeUnit.SECONDS); } catch (InterruptedException e) {}
+    }
+
+    private String profileToJson(RTLProfile p) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("\"profileName\":\"").append(p.profileName.replace("\"", "\\\"")).append("\"");
+        sb.append(",\"whiteBalance\":\"").append(p.whiteBalance).append("\"");
+        sb.append(",\"wbShift\":").append(p.wbShift);
+        sb.append(",\"wbShiftGM\":").append(p.wbShiftGM);
+        sb.append(",\"dro\":\"").append(p.dro).append("\"");
+        sb.append(",\"contrast\":").append(p.contrast);
+        sb.append(",\"saturation\":").append(p.saturation);
+        sb.append(",\"sharpness\":").append(p.sharpness);
+        sb.append(",\"sharpnessGain\":").append(p.sharpnessGain);
+        sb.append(",\"colorMode\":\"").append(p.colorMode).append("\"");
+        sb.append(",\"colorDepthRed\":").append(p.colorDepthRed);
+        sb.append(",\"colorDepthGreen\":").append(p.colorDepthGreen);
+        sb.append(",\"colorDepthBlue\":").append(p.colorDepthBlue);
+        sb.append(",\"colorDepthCyan\":").append(p.colorDepthCyan);
+        sb.append(",\"colorDepthMagenta\":").append(p.colorDepthMagenta);
+        sb.append(",\"colorDepthYellow\":").append(p.colorDepthYellow);
+        sb.append(",\"advMatrix\":[");
+        for (int i = 0; i < 9; i++) sb.append(p.advMatrix[i]).append(i < 8 ? "," : "");
+        sb.append("]");
+        sb.append(",\"proColorMode\":\"").append(p.proColorMode).append("\"");
+        sb.append(",\"pictureEffect\":\"").append(p.pictureEffect).append("\"");
+        sb.append(",\"peToyCameraTone\":\"").append(p.peToyCameraTone).append("\"");
+        sb.append(",\"softFocusLevel\":").append(p.softFocusLevel);
+        sb.append(",\"vignetteHardware\":").append(p.vignetteHardware);
+        sb.append(",\"shadingRed\":").append(p.shadingRed);
+        sb.append(",\"shadingBlue\":").append(p.shadingBlue);
+        sb.append("}");
+        return sb.toString();
+    }
+
+    private void applyJsonToProfile(RTLProfile p, JSONObject json) {
+        if (json.has("profileName")) p.profileName = json.optString("profileName", p.profileName);
+        if (json.has("whiteBalance")) p.whiteBalance = json.optString("whiteBalance", p.whiteBalance);
+        if (json.has("wbShift")) p.wbShift = json.optInt("wbShift", p.wbShift);
+        if (json.has("wbShiftGM")) p.wbShiftGM = json.optInt("wbShiftGM", p.wbShiftGM);
+        if (json.has("dro")) p.dro = json.optString("dro", p.dro);
+        if (json.has("contrast")) p.contrast = json.optInt("contrast", p.contrast);
+        if (json.has("saturation")) p.saturation = json.optInt("saturation", p.saturation);
+        if (json.has("sharpness")) p.sharpness = json.optInt("sharpness", p.sharpness);
+        if (json.has("sharpnessGain")) p.sharpnessGain = json.optInt("sharpnessGain", p.sharpnessGain);
+        if (json.has("colorMode")) p.colorMode = json.optString("colorMode", p.colorMode);
+        if (json.has("colorDepthRed")) p.colorDepthRed = json.optInt("colorDepthRed", p.colorDepthRed);
+        if (json.has("colorDepthGreen")) p.colorDepthGreen = json.optInt("colorDepthGreen", p.colorDepthGreen);
+        if (json.has("colorDepthBlue")) p.colorDepthBlue = json.optInt("colorDepthBlue", p.colorDepthBlue);
+        if (json.has("colorDepthCyan")) p.colorDepthCyan = json.optInt("colorDepthCyan", p.colorDepthCyan);
+        if (json.has("colorDepthMagenta")) p.colorDepthMagenta = json.optInt("colorDepthMagenta", p.colorDepthMagenta);
+        if (json.has("colorDepthYellow")) p.colorDepthYellow = json.optInt("colorDepthYellow", p.colorDepthYellow);
+        if (json.has("advMatrix")) {
+            JSONArray arr = json.optJSONArray("advMatrix");
+            if (arr != null && arr.length() == 9) {
+                for (int i = 0; i < 9; i++) p.advMatrix[i] = arr.optInt(i, p.advMatrix[i]);
+            }
+        }
+        if (json.has("proColorMode")) p.proColorMode = json.optString("proColorMode", p.proColorMode);
+        if (json.has("pictureEffect")) p.pictureEffect = json.optString("pictureEffect", p.pictureEffect);
+        if (json.has("peToyCameraTone")) p.peToyCameraTone = json.optString("peToyCameraTone", p.peToyCameraTone);
+        if (json.has("softFocusLevel")) p.softFocusLevel = json.optInt("softFocusLevel", p.softFocusLevel);
+        if (json.has("vignetteHardware")) p.vignetteHardware = json.optInt("vignetteHardware", p.vignetteHardware);
+        if (json.has("shadingRed")) p.shadingRed = json.optInt("shadingRed", p.shadingRed);
+        if (json.has("shadingBlue")) p.shadingBlue = json.optInt("shadingBlue", p.shadingBlue);
+    }
+
+    private String readBody(IHTTPSession session) {
+        try {
+            String lenStr = session.getHeaders().get("content-length");
+            int len = lenStr != null ? Integer.parseInt(lenStr) : 0;
+            if (len <= 0) return "";
+            byte[] buf = new byte[len];
+            int read = 0;
+            InputStream is = session.getInputStream();
+            while (read < len) {
+                int n = is.read(buf, read, len - read);
+                if (n < 0) break;
+                read += n;
+            }
+            return new String(buf, 0, read, "UTF-8");
+        } catch (Exception e) { return ""; }
+    }
+
+    private Response json(String body) {
+        Response r = newFixedLengthResponse(Response.Status.OK, "application/json", body);
+        r.addHeader("Access-Control-Allow-Origin", "*");
+        return r;
+    }
+
+    private Response jsonError(Response.Status status, String msg) {
+        Response r = newFixedLengthResponse(status, "application/json", "{\"error\":\"" + msg + "\"}");
+        r.addHeader("Access-Control-Allow-Origin", "*");
+        return r;
     }
 
     @Override
@@ -40,12 +158,106 @@ public class HttpServer extends NanoHTTPD {
         if (Method.OPTIONS.equals(method)) {
             Response res = newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
             res.addHeader("Access-Control-Allow-Origin", "*");
-            res.addHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+            res.addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS");
             res.addHeader("Access-Control-Allow-Headers", "x-file-name, content-length, content-type");
             return res;
         }
 
         try {
+            // ---------------------------------------------------------------
+            // Hardware parameter API
+            // ---------------------------------------------------------------
+            if (uri.equals("/api/hardware")) {
+                if (callback == null) return jsonError(Response.Status.SERVICE_UNAVAILABLE, "not ready");
+                if (Method.GET.equals(method)) {
+                    return json(profileToJson(callback.getRecipeManager().getCurrentProfile()));
+                }
+                if (Method.PUT.equals(method)) {
+                    final String body = readBody(session);
+                    try {
+                        final JSONObject json = new JSONObject(body);
+                        final RecipeManager rm = callback.getRecipeManager();
+                        runOnMainThreadAndWait(new Runnable() {
+                            public void run() {
+                                applyJsonToProfile(rm.getCurrentProfile(), json);
+                                android.hardware.Camera cam = callback.getCamera();
+                                if (cam != null) HardwareRecipeApplier.apply(cam, rm.getCurrentProfile());
+                                rm.savePreferences();
+                            }
+                        });
+                        return json(profileToJson(rm.getCurrentProfile()));
+                    } catch (Exception e) {
+                        return jsonError(Response.Status.BAD_REQUEST, "invalid json");
+                    }
+                }
+            }
+
+            // ---------------------------------------------------------------
+            // Recipe slot API
+            // ---------------------------------------------------------------
+            if (uri.equals("/api/recipes/active") && Method.GET.equals(method)) {
+                if (callback == null) return jsonError(Response.Status.SERVICE_UNAVAILABLE, "not ready");
+                return json("{\"active\":" + callback.getRecipeManager().getCurrentSlot() + "}");
+            }
+
+            if (uri.equals("/api/recipes") && Method.GET.equals(method)) {
+                if (callback == null) return jsonError(Response.Status.SERVICE_UNAVAILABLE, "not ready");
+                RecipeManager rm = callback.getRecipeManager();
+                StringBuilder sb = new StringBuilder("[");
+                for (int i = 0; i < 10; i++) {
+                    RTLProfile p = rm.getProfile(i);
+                    String name = p != null ? p.profileName : ("SLOT " + (i + 1));
+                    if (i > 0) sb.append(",");
+                    sb.append("{\"index\":").append(i).append(",\"name\":\"").append(name.replace("\"", "\\\"")).append("\"}");
+                }
+                sb.append("]");
+                return json(sb.toString());
+            }
+
+            // PUT /api/recipes/{n}/load  and  PUT /api/recipes/{n}/save
+            if (uri.startsWith("/api/recipes/") && Method.PUT.equals(method)) {
+                if (callback == null) return jsonError(Response.Status.SERVICE_UNAVAILABLE, "not ready");
+                String[] parts = uri.split("/");
+                // parts: ["", "api", "recipes", "{n}", "load|save"]
+                if (parts.length == 5) {
+                    int slot;
+                    try { slot = Integer.parseInt(parts[3]); } catch (NumberFormatException e) {
+                        return jsonError(Response.Status.BAD_REQUEST, "invalid slot");
+                    }
+                    if (slot < 0 || slot > 9) return jsonError(Response.Status.BAD_REQUEST, "slot 0-9");
+                    final int finalSlot = slot;
+                    final RecipeManager rm = callback.getRecipeManager();
+
+                    if ("load".equals(parts[4])) {
+                        runOnMainThreadAndWait(new Runnable() {
+                            public void run() {
+                                rm.setCurrentSlot(finalSlot);
+                                android.hardware.Camera cam = callback.getCamera();
+                                if (cam != null) HardwareRecipeApplier.apply(cam, rm.getCurrentProfile());
+                            }
+                        });
+                        return json("{\"active\":" + rm.getCurrentSlot() + "}");
+                    }
+                    if ("save".equals(parts[4])) {
+                        final String body = readBody(session);
+                        runOnMainThreadAndWait(new Runnable() {
+                            public void run() {
+                                if (!body.isEmpty()) {
+                                    try {
+                                        JSONObject json = new JSONObject(body);
+                                        String name = json.optString("name", null);
+                                        if (name != null && !name.isEmpty()) rm.getProfile(finalSlot).profileName = name;
+                                    } catch (Exception ignored) {}
+                                }
+                                rm.setCurrentSlot(finalSlot);
+                                rm.savePreferences();
+                            }
+                        });
+                        return json(profileToJson(rm.getProfile(finalSlot)));
+                    }
+                }
+            }
+
             // Upload endpoint for LUTs and Lenses
             if (Method.POST.equals(method) && (uri.equals("/api/upload_lut") || uri.equals("/api/upload"))) {
                 FileOutputStream out = null;
