@@ -250,28 +250,10 @@
 
     <div id="tune-panel" style="display:none">
         <div class="tune-section">
-            <h4>FILM PRESETS</h4>
-            <p class="tune-hint">Tap to load a starting point, then tweak and save to a slot.</p>
-            <div class="preset-grid">
-                <button class="preset-btn" onclick="tuneApplyPreset('Provia')">Provia</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Velvia')">Velvia</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Astia')">Astia</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Classic Chrome')">Classic Chrome</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Classic Neg')">Classic Neg</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Nostalgic Neg')">Nostalgic Neg</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Reala Ace')">Reala Ace</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Eterna')">Eterna</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('PRO Neg Hi')">PRO Neg Hi</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('PRO Neg Std')">PRO Neg Std</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Acros')">Acros</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Acros+Ye')">Acros+Ye</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Acros+R')">Acros+R</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Acros+G')">Acros+G</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Mono')">Mono</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Mono+Ye')">Mono+Ye</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Mono+R')">Mono+R</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Mono+G')">Mono+G</button>
-                <button class="preset-btn" onclick="tuneApplyPreset('Sepia')">Sepia</button>
+            <h4>SAVED LOOKS</h4>
+            <p class="tune-hint">Tap to load a recipe into the active slot and apply live.</p>
+            <div class="preset-grid" id="vault-grid">
+                <span style="color:var(--text-muted);font-size:11px">Loading…</span>
             </div>
         </div>
         <div class="tune-section">
@@ -435,7 +417,7 @@
             document.getElementById('gallery').style.display = isTune ? 'none' : 'grid';
             document.getElementById('toolbar-filter-group').style.display = isTune ? 'none' : '';
             document.getElementById('toolbar-select-row').style.display = isTune ? 'none' : '';
-            if (isTune) { tuneFetch(); tuneLoadRecipeList(); } else loadFiles();
+            if (isTune) { tuneFetch(); tuneLoadRecipeList(); tuneLoadVault(); } else loadFiles();
         }
 
         function setFilter(f) {
@@ -702,53 +684,37 @@
         let tuneDebounce = null;
         let tuneActiveSlot = 0;
 
-        const TUNE_PRESETS = {
-            "Provia":        {colorMode:"standard", contrast:0,  saturation:0,  sharpness:0,  sharpnessGain:0, wbShift:0,  wbShiftGM:0, dro:"OFF", colorDepthRed:0, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Velvia":        {colorMode:"vivid",    contrast:2,  saturation:8,  sharpness:0,  sharpnessGain:0, wbShift:0,  wbShiftGM:0, dro:"OFF", colorDepthRed:3, colorDepthGreen:3, colorDepthBlue:0, colorDepthCyan:1, colorDepthMagenta:0, colorDepthYellow:2, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Astia":         {colorMode:"portrait", contrast:-1, saturation:2,  sharpness:0,  sharpnessGain:0, wbShift:0,  wbShiftGM:0, dro:"on",  colorDepthRed:1, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:1, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Classic Chrome":{colorMode:"neutral",  contrast:1,  saturation:-6, sharpness:0,  sharpnessGain:0, wbShift:1,  wbShiftGM:0, dro:"OFF", colorDepthRed:0, colorDepthGreen:0, colorDepthBlue:2, colorDepthCyan:2, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Classic Neg":   {colorMode:"standard", contrast:1,  saturation:3,  sharpness:0,  sharpnessGain:0, wbShift:1,  wbShiftGM:0, dro:"on",  colorDepthRed:1, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:1, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Nostalgic Neg": {colorMode:"sunset",   contrast:-1, saturation:2,  sharpness:0,  sharpnessGain:0, wbShift:2,  wbShiftGM:0, dro:"on",  colorDepthRed:1, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:1, colorDepthYellow:2, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Reala Ace":     {colorMode:"standard", contrast:2,  saturation:0,  sharpness:1,  sharpnessGain:0, wbShift:0,  wbShiftGM:0, dro:"OFF", colorDepthRed:0, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Eterna":        {colorMode:"neutral",  contrast:-3, saturation:-8, sharpness:-1, sharpnessGain:0, wbShift:0,  wbShiftGM:0, dro:"on",  colorDepthRed:0, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "PRO Neg Hi":    {colorMode:"portrait", contrast:2,  saturation:0,  sharpness:1,  sharpnessGain:0, wbShift:0,  wbShiftGM:0, dro:"OFF", colorDepthRed:0, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "PRO Neg Std":   {colorMode:"neutral",  contrast:-2, saturation:-2, sharpness:0,  sharpnessGain:0, wbShift:0,  wbShiftGM:0, dro:"on",  colorDepthRed:0, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Acros":         {colorMode:"bw",       contrast:2,  saturation:0,  sharpness:0,  sharpnessGain:2, wbShift:0,  wbShiftGM:0, dro:"OFF", colorDepthRed:0, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Acros+Ye":      {colorMode:"bw",       contrast:2,  saturation:0,  sharpness:0,  sharpnessGain:2, wbShift:-2, wbShiftGM:0, dro:"OFF", colorDepthRed:0, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Acros+R":       {colorMode:"bw",       contrast:3,  saturation:0,  sharpness:0,  sharpnessGain:2, wbShift:0,  wbShiftGM:0, dro:"OFF", colorDepthRed:3, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Acros+G":       {colorMode:"bw",       contrast:1,  saturation:0,  sharpness:0,  sharpnessGain:2, wbShift:0,  wbShiftGM:0, dro:"OFF", colorDepthRed:0, colorDepthGreen:3, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Mono":          {colorMode:"bw",       contrast:0,  saturation:0,  sharpness:0,  sharpnessGain:0, wbShift:0,  wbShiftGM:0, dro:"OFF", colorDepthRed:0, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Mono+Ye":       {colorMode:"bw",       contrast:1,  saturation:0,  sharpness:0,  sharpnessGain:0, wbShift:-1, wbShiftGM:0, dro:"OFF", colorDepthRed:0, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Mono+R":        {colorMode:"bw",       contrast:2,  saturation:0,  sharpness:0,  sharpnessGain:0, wbShift:0,  wbShiftGM:0, dro:"OFF", colorDepthRed:2, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Mono+G":        {colorMode:"bw",       contrast:-1, saturation:0,  sharpness:0,  sharpnessGain:0, wbShift:0,  wbShiftGM:0, dro:"OFF", colorDepthRed:0, colorDepthGreen:2, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0},
-            "Sepia":         {colorMode:"sepia",    contrast:-1, saturation:0,  sharpness:0,  sharpnessGain:0, wbShift:0,  wbShiftGM:0, dro:"OFF", colorDepthRed:0, colorDepthGreen:0, colorDepthBlue:0, colorDepthCyan:0, colorDepthMagenta:0, colorDepthYellow:0, advMatrix:[100,0,0,0,100,0,0,0,100], pictureEffect:"off", proColorMode:"off", peToyCameraTone:"normal", vignetteHardware:0}
-        };
-
-        function tuneApplyPreset(name) {
-            const p = TUNE_PRESETS[name];
-            if (!p) return;
-            tuneState.colorMode         = p.colorMode;
-            tuneState.contrast          = p.contrast;
-            tuneState.saturation        = p.saturation;
-            tuneState.sharpness         = p.sharpness;
-            tuneState.sharpnessGain     = p.sharpnessGain;
-            tuneState.wbShift           = p.wbShift;
-            tuneState.wbShiftGM         = p.wbShiftGM;
-            tuneState.dro               = p.dro;
-            tuneState.colorDepthRed     = p.colorDepthRed;
-            tuneState.colorDepthGreen   = p.colorDepthGreen;
-            tuneState.colorDepthBlue    = p.colorDepthBlue;
-            tuneState.colorDepthCyan    = p.colorDepthCyan;
-            tuneState.colorDepthMagenta = p.colorDepthMagenta;
-            tuneState.colorDepthYellow  = p.colorDepthYellow;
-            tuneState.advMatrix         = p.advMatrix.slice();
-            tuneState.pictureEffect     = p.pictureEffect;
-            tuneState.proColorMode      = p.proColorMode;
-            tuneState.peToyCameraTone   = p.peToyCameraTone;
-            tuneState.vignetteHardware  = p.vignetteHardware;
-            clearTimeout(tuneDebounce);
-            tuneApply().then(function() { tuneRender(); });
+        async function tuneLoadVault() {
+            try {
+                const res = await fetch('/api/vault');
+                const items = await res.json();
+                const grid = document.getElementById('vault-grid');
+                if (!items.length) {
+                    grid.innerHTML = '<span style="color:var(--text-muted);font-size:11px">No saved looks yet.</span>';
+                    return;
+                }
+                grid.innerHTML = '';
+                items.forEach(function(item) {
+                    const btn = document.createElement('button');
+                    btn.className = 'preset-btn';
+                    btn.textContent = item.profileName;
+                    btn.onclick = function() { tuneLoadFromVault(item.filename); };
+                    grid.appendChild(btn);
+                });
+            } catch(e) {}
         }
+
+        async function tuneLoadFromVault(filename) {
+            try {
+                const res = await fetch('/api/vault/load', {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({filename: filename})
+                });
+                if (res.ok) { tuneState = await res.json(); tuneRender(); tuneLoadRecipeList(); }
+            } catch(e) {}
+        }
+
 
         async function tuneFetch() {
             try {

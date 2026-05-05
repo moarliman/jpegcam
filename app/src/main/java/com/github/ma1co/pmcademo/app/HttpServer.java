@@ -258,6 +258,43 @@ public class HttpServer extends NanoHTTPD {
                 }
             }
 
+            // ---------------------------------------------------------------
+            // Vault API
+            // ---------------------------------------------------------------
+            if (uri.equals("/api/vault") && Method.GET.equals(method)) {
+                if (callback == null) return jsonError(Response.Status.SERVICE_UNAVAILABLE, "not ready");
+                java.util.List<RecipeManager.VaultItem> items = callback.getRecipeManager().getVaultItems();
+                StringBuilder sb = new StringBuilder("[");
+                boolean first = true;
+                for (RecipeManager.VaultItem item : items) {
+                    if (item.filename.equals("NONE")) continue;
+                    if (!first) sb.append(",");
+                    first = false;
+                    sb.append("{\"filename\":\"").append(item.filename.replace("\"", "\\\""))
+                      .append("\",\"profileName\":\"").append(item.profileName.replace("\"", "\\\"")).append("\"}");
+                }
+                sb.append("]");
+                return json(sb.toString());
+            }
+
+            if (uri.equals("/api/vault/load") && Method.PUT.equals(method)) {
+                if (callback == null) return jsonError(Response.Status.SERVICE_UNAVAILABLE, "not ready");
+                String body = readBody(session);
+                String filename;
+                try { filename = new JSONObject(body).getString("filename"); }
+                catch (Exception e) { return jsonError(Response.Status.BAD_REQUEST, "missing filename"); }
+                final String fn = filename;
+                final RecipeManager rm = callback.getRecipeManager();
+                runOnMainThreadAndWait(new Runnable() {
+                    public void run() {
+                        rm.previewVaultToSlot(fn);
+                        android.hardware.Camera cam = callback.getCamera();
+                        if (cam != null) HardwareRecipeApplier.apply(cam, rm.getCurrentProfile());
+                    }
+                });
+                return json(profileToJson(rm.getCurrentProfile()));
+            }
+
             // Upload endpoint for LUTs and Lenses
             if (Method.POST.equals(method) && (uri.equals("/api/upload_lut") || uri.equals("/api/upload"))) {
                 FileOutputStream out = null;
