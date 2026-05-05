@@ -21,10 +21,13 @@ This fork removes that entire pipeline. The BIONZ X ISP already exposes every pa
 
 ## Features
 
-- **TUNE tab** — phone web UI with sliders and dropdowns for every ISP parameter
-- **Live preview** — move a slider, the camera screen reflects it within a frame
+- **Recipes tab** — phone web UI with sliders and dropdowns for every ISP parameter; changes apply to the live preview within a frame
+- **19 built-in film simulation presets** — Fuji-inspired starting points (Provia, Velvia, Astia, Classic Chrome, Eterna, Acros variants, and more), ready to load and tweak on first launch
+- **Saved Looks** — all recipes (built-in and user-created) appear as one-tap buttons in the dashboard; load any look into the active slot and apply it live
 - **10 recipe slots** — save and name looks; switch between them on the camera's control wheel without touching your phone
-- **Wireless dashboard** — browse and download photos over the camera's Wi-Fi hotspot or your home network
+- **Recipe import / export** — download any slot as a JSON file, share it, upload it back on any camera running this app
+- **Photos tab** — browse, filter, and download photos from the DCIM folder over Wi-Fi
+- **Installable PWA** — add the dashboard to your phone's home screen for a full-screen experience with no browser chrome
 - **Pure Java** — no native code, no NDK, fast CI builds (~1 min)
 
 ## What you can tune
@@ -39,7 +42,8 @@ This fork removes that entire pipeline. The BIONZ X ISP already exposes every pa
 | Picture Effects | Toy Camera, Pop Color, Soft Focus, HDR Art, Miniature, Watercolor, and more |
 | Lens Shading | Per-channel shading correction, hardware vignette |
 
-Full parameter reference: [`docs/hardware-parameters.md`](docs/hardware-parameters.md)
+Full parameter reference: [`docs/hardware-parameters.md`](docs/hardware-parameters.md)  
+Film simulation reference: [`docs/film-simulations.md`](docs/film-simulations.md)
 
 ## How to use
 
@@ -51,17 +55,21 @@ Full parameter reference: [`docs/hardware-parameters.md`](docs/hardware-paramete
 1. Open the app on the camera
 2. Press MENU → NETWORK → Camera Hotspot (or Home Wi-Fi)
 3. Connect your phone to the camera's network and open the URL shown on screen
+4. Optional: tap the share icon in your browser → **Add to Home Screen** to install as a full-screen app
 
-**3. Tune**
-1. Tap **TUNE** in the dashboard
-2. Adjust any slider or dropdown — the camera preview updates live
-3. Hit **SAVE** to store the current look into a named recipe slot
+**3. Start from a preset**
+1. Tap **Recipes** in the dashboard
+2. Under **Saved Looks**, tap any film simulation preset to load it instantly
+3. Adjust sliders to taste, then hit **Save** to store the look into a named slot
 
 **4. Shoot**
 Photos are saved already graded. The JPEG coming out of the camera is colour-graded at capture time — no separate processing folder, no waiting.
 
 **5. Switch recipes on camera**
 Spin the camera's control wheel to cycle through your 10 saved slots without touching the phone.
+
+**6. Share recipes**
+Tap **Download** in any recipe slot to save it as a `.json` file. Send it to a friend or load it back with **Upload**.
 
 ## Supported cameras
 
