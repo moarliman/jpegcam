@@ -31,7 +31,7 @@ import java.util.List;
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback,
     SonyCameraManager.CameraEventListener, InputManager.InputListener,
-    ConnectivityManager.StatusUpdateListener, PlaybackController.HostCallback,
+    ConnectivityManager.StatusUpdateListener,
     MenuController.HostCallback, HudController.HostCallback, HttpServer.Callback {
 
     public static final boolean DEBUG_MODE = false;
@@ -72,8 +72,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
     private TextView tvValEv;
     private TextView tvMode;
     private TextView tvFocusMode;
-    private TextView tvReview;
-
     private HudController hudController;
 
     private int matrixToPercent(int hardwareValue) {
@@ -84,7 +82,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
     }
 
     private BatteryView batteryIcon;
-    private PlaybackController playbackController;
     private MenuController menuController;
     private boolean isReady = true;
     private int displayState = 0;
@@ -146,7 +143,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
     private Runnable liveUpdater = new Runnable() {
         @Override
         public void run() {
-            if (displayState == 0 && !menuController.isOpen() && !playbackController.isActive() && hasSurface) {
+            if (displayState == 0 && !menuController.isOpen() && hasSurface) {
                 if (cameraManager != null && cameraManager.getCamera() != null) {
                     boolean s1_1_free = ScalarInput.getKeyStatus(ScalarInput.ISV_KEY_S1_1).status == 0;
                     boolean s1_2_free = ScalarInput.getKeyStatus(ScalarInput.ISV_KEY_S1_2).status == 0;
@@ -267,7 +264,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void onShutterHalfPressed() {
-        if (playbackController.isActive()) { playbackController.exit(); return; }
         if (menuController.isOpen()) { menuController.close(); return; }
         if (displayState == 0 && !menuController.isOpen()) setHUDVisibility(View.GONE);
         if (cameraManager != null && cameraManager.getCamera() != null && !cachedIsManualFocus) {
@@ -277,7 +273,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void onShutterHalfReleased() {
-        if (displayState == 0 && !menuController.isOpen() && !playbackController.isActive()) setHUDVisibility(View.VISIBLE);
+        if (displayState == 0 && !menuController.isOpen()) setHUDVisibility(View.VISIBLE);
         if (afOverlay != null && cameraManager != null && cameraManager.getCamera() != null) {
             afOverlay.stopFocus(cameraManager.getCamera());
         }
@@ -288,7 +284,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void onMenuPressed() {
-        if (playbackController.isActive()) { playbackController.exit(); return; }
         if (menuController.isOpen()) menuController.close();
         else menuController.open();
     }
@@ -304,8 +299,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void onEnterPressed() {
-        if (playbackController.isActive()) { playbackController.exit(); return; }
-
         if (hudController.isActive()) {
             if (hudController.getMode() == 10) {
                 if (menuController.isNamingMode()) {
@@ -386,13 +379,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
         if (menuController.dispatchHudLaunch()) return;
 
         if (!menuController.isOpen()) {
-            if (mDialMode == DIAL_MODE_REVIEW) {
-                playbackController.enter();
-            } else {
-                displayState = (displayState == 0) ? 1 : 0;
-                mainUIContainer.setVisibility(displayState == 0 ? View.VISIBLE : View.GONE);
-                updateMainHUD();
-            }
+            displayState = (displayState == 0) ? 1 : 0;
+            mainUIContainer.setVisibility(displayState == 0 ? View.VISIBLE : View.GONE);
+            updateMainHUD();
         } else {
             menuController.handleEnter();
         }
@@ -441,11 +430,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
         }
         if (hudController.isActive() && !menuController.isNamingMode()) { hudController.handleLeft(); return; }
         if (menuController.isOpen()) { menuController.handleLeft(); return; }
-        if (playbackController.isActive()) {
-            playbackController.navigate(-1);
-        } else {
-            navigateHomeSpatial(ScalarInput.ISV_KEY_LEFT);
-        }
+        navigateHomeSpatial(ScalarInput.ISV_KEY_LEFT);
     }
 
     @Override
@@ -457,23 +442,19 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
         }
         if (hudController.isActive() && !menuController.isNamingMode()) { hudController.handleRight(); return; }
         if (menuController.isOpen()) { menuController.handleRight(); return; }
-        if (playbackController.isActive()) {
-            playbackController.navigate(1);
-        } else {
-            navigateHomeSpatial(ScalarInput.ISV_KEY_RIGHT);
-        }
+        navigateHomeSpatial(ScalarInput.ISV_KEY_RIGHT);
     }
 
     @Override
     public void onCustomButtonPressed() {
-        if (playbackController.isActive() || menuController.isOpen()) return;
+        if (menuController.isOpen()) return;
         mDialMode = DIAL_MODE_ISO;
         updateMainHUD();
     }
 
     @Override
     public void onFrontDialRotated(int direction) {
-        if (hudController.isActive() || playbackController.isActive() || menuController.isOpen()) { onControlWheelRotated(direction); return; }
+        if (hudController.isActive() || menuController.isOpen()) { onControlWheelRotated(direction); return; }
         if (cameraManager != null && cameraManager.getCameraEx() != null) {
             if (direction > 0) cameraManager.getCameraEx().incrementShutterSpeed();
             else cameraManager.getCameraEx().decrementShutterSpeed();
@@ -483,7 +464,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void onRearDialRotated(int direction) {
-        if (hudController.isActive() || playbackController.isActive() || menuController.isOpen()) { onControlWheelRotated(direction); return; }
+        if (hudController.isActive() || menuController.isOpen()) { onControlWheelRotated(direction); return; }
         if (cameraManager != null && cameraManager.getCameraEx() != null) {
             if (direction > 0) cameraManager.getCameraEx().incrementAperture();
             else cameraManager.getCameraEx().decrementAperture();
@@ -504,9 +485,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
             return;
         }
         if (hudController.isActive() && !menuController.isNamingMode()) { hudController.handleDial(direction); return; }
-        if (playbackController.isActive()) {
-            playbackController.navigate(direction);
-        } else if (menuController.isOpen()) {
+        if (menuController.isOpen()) {
             menuController.handleDial(direction);
         } else {
             handleHardwareInput(direction);
@@ -677,12 +656,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
         batteryArea.addView(batteryIcon, new LinearLayout.LayoutParams(28, 12));
         rightBar.addView(batteryArea);
 
-        tvReview = createSideTextIcon("▶");
-        LinearLayout.LayoutParams rvParams = new LinearLayout.LayoutParams(-2, -2);
-        rvParams.setMargins(0, 20, 0, 0);
-        tvReview.setLayoutParams(rvParams);
-        rightBar.addView(tvReview);
-
         FrameLayout.LayoutParams rightParams = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.RIGHT);
         rightParams.setMargins(0, 20, 30, 0);
         mainUIContainer.addView(rightBar, rightParams);
@@ -724,9 +697,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
         afOverlay = new ProReticleView(this);
         mainUIContainer.addView(afOverlay, new FrameLayout.LayoutParams(-1, -1));
 
-        menuController   = new MenuController(this, rootLayout, this);
-        playbackController = new PlaybackController(this, rootLayout, this);
-        hudController    = new HudController(this, mainUIContainer, this);
+        menuController = new MenuController(this, rootLayout, this);
+        hudController  = new HudController(this, mainUIContainer, this);
     }
 
     private TextView createBottomText() {
@@ -769,14 +741,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
             return true;
         }
 
-        if (keyCode == ScalarInput.ISV_KEY_PLAY || keyCode == android.view.KeyEvent.KEYCODE_MEDIA_PLAY) {
-            if (action == android.view.KeyEvent.ACTION_UP) {
-                if (playbackController.isActive()) playbackController.exit();
-                else if (!menuController.isOpen()) playbackController.enter();
-            }
-            return true;
-        }
-
         return super.dispatchKeyEvent(event);
     }
 
@@ -788,11 +752,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
             if (cameraManager != null) onHardwareStateChanged();
             return true;
         }
-        if (k == ScalarInput.ISV_KEY_PLAY || k == android.view.KeyEvent.KEYCODE_MEDIA_PLAY) {
-            if (playbackController.isActive()) playbackController.exit();
-            else if (!menuController.isOpen()) playbackController.enter();
-            return true;
-        }
         if (inputManager != null) return inputManager.handleKeyDown(k, e) || super.onKeyDown(k, e);
         return super.onKeyDown(k, e);
     }
@@ -801,9 +760,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
     public boolean onKeyUp(int k, android.view.KeyEvent e) {
         if (k == 624 || k == ScalarInput.ISV_KEY_MODE_DIAL ||
            (k >= ScalarInput.ISV_KEY_MODE_INVALID && k <= ScalarInput.ISV_KEY_MODE_CUSTOM3)) {
-            return true;
-        }
-        if (k == ScalarInput.ISV_KEY_PLAY || k == android.view.KeyEvent.KEYCODE_MEDIA_PLAY) {
             return true;
         }
         if (inputManager != null) return inputManager.handleKeyUp(k, e) || super.onKeyUp(k, e);
@@ -891,7 +847,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
         if (batteryIcon  != null) batteryIcon.setVisibility(v);
         if (tvMode       != null) tvMode.setVisibility(v);
         if (tvFocusMode  != null) tvFocusMode.setVisibility(v);
-        if (tvReview     != null) tvReview.setVisibility(v);
         if (focusMeter   != null) focusMeter.setVisibility((v == View.VISIBLE && cachedIsManualFocus && prefShowFocusMeter) ? View.VISIBLE : View.GONE);
     }
 
@@ -938,11 +893,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
         if (tvValShutter  != null) tvValShutter.setText(ss.first == 1 && ss.second != 1 ? ss.first + "/" + ss.second : ss.first + "\"");
         if (tvValIso      != null) tvValIso.setText(pm.getISOSensitivity() == 0 ? "ISO AUTO" : "ISO " + pm.getISOSensitivity());
         if (tvValEv       != null) tvValEv.setText(String.format("%+.1f", p.getExposureCompensation() * p.getExposureCompensationStep()));
-
-        if (tvReview != null) {
-            tvReview.setBackgroundColor(mDialMode == DIAL_MODE_REVIEW ? Color.WHITE : Color.argb(140, 40, 40, 40));
-            tvReview.setTextColor(mDialMode == DIAL_MODE_REVIEW ? Color.BLACK : Color.rgb(227, 69, 20));
-        }
 
         if (tvValShutter  != null) tvValShutter.setTextColor(mDialMode == DIAL_MODE_SHUTTER  ? Color.WHITE : Color.rgb(227, 69, 20));
         if (tvValAperture != null) tvValAperture.setTextColor(mDialMode == DIAL_MODE_APERTURE ? Color.WHITE : Color.rgb(227, 69, 20));
@@ -1047,10 +997,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
             @Override public void run() { menuController.updateConnectionStatus(target, status); }
         });
     }
-
-    // --- PlaybackController.HostCallback ---
-    @Override public FrameLayout getMainUIContainer() { return mainUIContainer; }
-    @Override public int         getDisplayState()    { return displayState; }
 
     // --- MenuController.HostCallback / HttpServer.Callback ---
     @Override public RecipeManager       getRecipeManager()       { return recipeManager; }
