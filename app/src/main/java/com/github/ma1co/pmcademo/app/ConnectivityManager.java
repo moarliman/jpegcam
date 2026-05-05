@@ -140,7 +140,7 @@ public class ConnectivityManager {
                             int ip = wifiInfo.getIpAddress();
                             if (ip != 0) {
                                 String ipAddress = String.format("%d.%d.%d.%d", (ip & 0xff), (ip >> 8 & 0xff), (ip >> 16 & 0xff), (ip >> 24 & 0xff));
-                                updateStatus("WIFI", "https://" + ipAddress + ":" + HttpServer.PORT);
+                                updateStatus("WIFI", "http://" + ipAddress + ":" + HttpServer.PORT);
                                 setAutoPowerOffMode(false);
                                 return;
                             }

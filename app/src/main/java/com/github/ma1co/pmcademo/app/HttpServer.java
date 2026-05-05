@@ -37,15 +37,6 @@ public class HttpServer extends NanoHTTPD {
     public HttpServer(Context context) {
         super(PORT);
         this.context = context;
-        try {
-            java.security.KeyStore ks = java.security.KeyStore.getInstance("PKCS12");
-            InputStream is = context.getAssets().open("keystore.p12");
-            ks.load(is, "jpegcam".toCharArray());
-            is.close();
-            javax.net.ssl.KeyManagerFactory kmf = javax.net.ssl.KeyManagerFactory.getInstance(javax.net.ssl.KeyManagerFactory.getDefaultAlgorithm());
-            kmf.init(ks, "jpegcam".toCharArray());
-            makeSecure(NanoHTTPD.makeSSLSocketFactory(ks, kmf.getKeyManagers()), null);
-        } catch (Exception e) {}
     }
 
     public void setCallback(Callback cb) { this.callback = cb; }
@@ -376,13 +367,6 @@ public class HttpServer extends NanoHTTPD {
             }
 
             // Dashboard Home
-            if (uri.equals("/cert")) {
-                InputStream is = context.getAssets().open("keystore.crt");
-                Response r = newChunkedResponse(Response.Status.OK, "application/x-x509-ca-cert", is);
-                r.addHeader("Content-Disposition", "attachment; filename=\"jpegcam.crt\"");
-                return r;
-            }
-
             if (uri.equals("/")) {
                 InputStream is = context.getAssets().open("index.html");
                 return newChunkedResponse(Response.Status.OK, "text/html", is);
