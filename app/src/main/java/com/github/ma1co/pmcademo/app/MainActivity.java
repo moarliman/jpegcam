@@ -999,6 +999,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
     }
 
     // --- MenuController.HostCallback / HttpServer.Callback ---
+    @Override public FrameLayout         getMainUIContainer()     { return mainUIContainer; }
     @Override public int                 getDisplayState()        { return displayState; }
     @Override public RecipeManager       getRecipeManager()       { return recipeManager; }
     @Override public ConnectivityManager getConnectivityManager() { return connectivityManager; }
