@@ -269,7 +269,7 @@
             </div>
             <div class="tune-row" style="margin-top:10px;gap:8px">
                 <button class="action-btn secondary-btn" style="flex:1;padding:7px 10px;font-size:11px;margin:0" onclick="tuneExport()">DOWNLOAD</button>
-                <input id="tune-import-input" type="file" accept=".json" style="display:none" onchange="tuneImportFile(this)">
+                <input id="tune-import-input" type="file" accept=".txt" style="display:none" onchange="tuneImportFile(this)">
                 <button class="action-btn secondary-btn" style="flex:1;padding:7px 10px;font-size:11px;margin:0" onclick="document.getElementById('tune-import-input').click()">UPLOAD</button>
             </div>
         </div>
@@ -827,7 +827,7 @@
                 var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
                 var a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = (data.profileName || 'recipe').replace(/[^a-zA-Z0-9_-]/g, '_') + '.json';
+                a.download = (data.profileName || 'recipe').replace(/[^a-zA-Z0-9_-]/g, '_') + '.txt';
                 a.click();
             });
         }
