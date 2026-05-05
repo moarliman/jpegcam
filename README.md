@@ -1,52 +1,77 @@
-# JPEG.CAM - In-Camera Custom Color Science System
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jbuchanan)
+# JPEG.CAM — Hardware ISP Control for Sony Alpha Cameras
 
-**💾 DOWNLOAD LINK:** Download the latest release from https://www.jpeg.cam
+> **Fork of the original JPEG.CAM project.**
+> This fork replaces the software filter pipeline (LUTs, grain, bloom, halation) with direct control over the camera's built-in BIONZ X image processor via a phone web interface.
 
-📺 Video WALK THRU LINK: https://www.youtube.com/watch?v=W1nfQPWFIy0
+[![Build](https://github.com/moarliman/jpegcam/actions/workflows/build.yml/badge.svg)](https://github.com/moarliman/jpegcam/actions/workflows/build.yml)
 
-**⚠️ BETA STATUS:** This project is currently in early beta. While it is stable and produces high-quality results, it is a "proof of concept" running on 2014-era hardware.
+## What it does
 
-JPEG.CAM turns your older Sony Alpha camera into a modern film-simulation powerhouse. This app brings professional color grading directly to your camera hardware, allowing you to apply custom 3D LUTs (`.cube` and `.cub` files) to your photos the moment you press the shutter.
+JPEG.CAM turns your Sony Alpha camera into a remotely-tunable color grading machine. Connect your phone to the camera's Wi-Fi hotspot, open the dashboard, and adjust image parameters in real time — the live preview on the camera screen updates immediately, and every photo you take is saved already-graded. No post-processing step, no waiting.
 
-## ✨ Features
-* **Custom LUT Support:** Load your own `.cube` or `.cub` files directly from your SD card.
-* **JPEG.CAM Dashboard:** A built-in wireless web server allows you to manage LUTs and download photos directly from the camera via Wi-Fi.
-* **Auto-Processing Engine:** The app automatically detects new photos and processes them in the background using a high-fidelity NDK engine.
-* **True Color Trilinear Interpolation:** High-fidelity color math prevents banding in gradients.
-* **Triple Quality Modes:** Choose between `PROXY (1.5MP)` for speed, `HIGH (6.0MP)` for a balance of quality, or `ULTRA (24MP)` for full resolution.
-* **Metadata Preservation:** Graded copies attempt to retain original EXIF metadata (ISO, Shutter Speed, etc.) by injecting saved APP markers into the processed files.
-* **Non-Destructive:** Original files are untouched. Graded copies are saved to a `/GRADED/` folder on your SD card.
+Everything runs inside the camera's BIONZ X image signal processor (ISP). The app just tells the ISP what to do.
 
-## ❗️ Technical Notes
-* **LUT Names:** Keep your LUT filenames short! Use 8 characters or less (e.g., `Kodak400.cube`). Long filenames may be invisible to the camera's file system.
-* **Battery Drain:** Heavy background processing and maintaining a Wi-Fi connection for the dashboard will impact battery life more than standard shooting.
+## Why this fork exists
 
-## 🚧 Known Limitations
-* **Processing Speed:** Because the camera uses a legacy processor, "High" or "Ultra" quality processing can take 15–30 seconds per image.
-* **JPEG Only:** This version is optimized for JPEGs. RAW files are ignored by the processor.
+The original JPEG.CAM applied 3D LUTs, grain, bloom, and halation in software using an NDK image processing pipeline. On 2014-era BIONZ X hardware this takes 15–30 seconds per 24MP photo.
 
-## 📖 How to Use
+This fork removes that entire pipeline. The BIONZ X ISP already exposes every parameter you'd want — creative style, white balance, color matrix, saturation, DRO, picture effects, 6-axis color depth, RGB matrix — and applies them in zero CPU time, baked into the JPEG at the moment of capture.
 
-**1. Prep your SD Card**
-- Create a folder named `LUTS` on the absolute root of your SD card. Drop your favorite `.cube` or `.cub` files into this folder.
+**Result:** instant graded photos, a dramatically simpler app, and a live what-you-see workflow.
 
-**2. Select your Recipe & Settings**
-- Open the app. Use the **LEFT** and **RIGHT** keys to cycle through the dial modes (RTL, Shutter, Aperture, ISO, etc.).
-- In **RTL mode**, spin the control wheel to cycle through your 10 saved recipe slots.
-- Press **MENU** to open the full settings to adjust LUT opacity, grain amount, highlight roll-off, and quality size.
+## Features
 
-**3. Use the Wireless Dashboard**
-- Navigate to the **Connections** page in the settings menu to start the Camera Hotspot or connect to Home Wi-Fi.
-- Open the provided URL on your phone or laptop to wirelessly upload new LUTs or download your graded photos.
+- **TUNE tab** — phone web UI with sliders and dropdowns for every ISP parameter
+- **Live preview** — move a slider, the camera screen reflects it within a frame
+- **10 recipe slots** — save and name looks; switch between them on the camera's control wheel without touching your phone
+- **Wireless dashboard** — browse and download photos over the camera's Wi-Fi hotspot or your home network
+- **Pure Java** — no native code, no NDK, fast CI builds (~1 min)
 
-**4. Shoot!**
-- Take a picture normally. The app will automatically see the new photo and begin `PROCESSING`. Once it says `SUCCESS`, your graded photo is ready.
+## What you can tune
 
-## 📷 Supported Cameras
-Compatible with PMCA cameras (Android 2.3.7 / API 10) including: **a5100, a6000, a6300, a6500, a7S II, a7R II, RX100 III/IV/V**.
+| Section | Parameters |
+|---|---|
+| Base Look | Creative style (Standard, Vivid, Neutral, B&W, Sepia…), Pro Color Mode, DRO |
+| Tone | Contrast, Saturation (−16 to +16), Sharpness, Micro-contrast (−7 to +7) |
+| White Balance | Mode, Kelvin (2500–9900), Amber/Blue shift, Green/Magenta shift |
+| Color Depth | Per-channel saturation: Red, Green, Blue, Cyan, Magenta, Yellow (−7 to +7) |
+| RGB Matrix | Full 3×3 color transformation matrix |
+| Picture Effects | Toy Camera, Pop Color, Soft Focus, HDR Art, Miniature, Watercolor, and more |
+| Lens Shading | Per-channel shading correction, hardware vignette |
 
-## 🚀 Installation
-1. Download the [pmca-gui installer](https://github.com/ma1co/Sony-PMCA-RE/releases).
-2. Download the latest release from https://www.jpeg.cam
-3. Connect camera via USB (MTP or Mass Storage mode) and use **pmca-gui** to install.
+Full parameter reference: [`docs/hardware-parameters.md`](docs/hardware-parameters.md)
+
+## How to use
+
+**1. Install**
+1. Download the latest APK from the [Actions tab](../../actions) — grab the `JPEGCAM` artifact from the latest successful build
+2. Install using [pmca-console](https://github.com/ma1co/Sony-PMCA-RE/releases)
+
+**2. Connect your phone**
+1. Open the app on the camera
+2. Press MENU → NETWORK → Camera Hotspot (or Home Wi-Fi)
+3. Connect your phone to the camera's network and open the URL shown on screen
+
+**3. Tune**
+1. Tap **TUNE** in the dashboard
+2. Adjust any slider or dropdown — the camera preview updates live
+3. Hit **SAVE** to store the current look into a named recipe slot
+
+**4. Shoot**
+Photos are saved already graded. The JPEG coming out of the camera is colour-graded at capture time — no separate processing folder, no waiting.
+
+**5. Switch recipes on camera**
+Spin the camera's control wheel to cycle through your 10 saved slots without touching the phone.
+
+## Supported cameras
+
+Any Sony BIONZ X camera that supports PMCA (Android 2.3.7 / API 10):
+**a5100, a6000, a6300, a6500, a7S II, a7R II, RX100 III/IV/V** and others.
+
+## Installation
+
+Connect the camera via USB, then use [pmca-gui](https://github.com/ma1co/Sony-PMCA-RE/releases) or pmca-console:
+
+```
+pmca-console install JPEGCAM-v2.01.apk
+```

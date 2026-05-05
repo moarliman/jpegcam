@@ -58,6 +58,7 @@ public class ConnectivityManager {
     public String getConnStatusWifi() { return connStatusWifi; }
     public boolean isHomeWifiRunning() { return isHomeWifiRunning; }
     public boolean isHotspotRunning() { return isHotspotRunning; }
+    public HttpServer getServer() { return server; }
 
     private void setAutoPowerOffMode(boolean enable) {
         String mode = enable ? "APO/NORMAL" : "APO/NO";

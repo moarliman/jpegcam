@@ -2,32 +2,25 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "28.0.3"
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
         // Leave this for one more build so it gracefully updates your existing app!
-        applicationId "com.jpgcookbook.sony" 
+        applicationId "com.jpgcookbook.sony"
         minSdkVersion 10
         targetSdkVersion 25
-        
-        // Bumped versioning for the JPEG.CAM era
-        versionCode 17
-        versionName "1.75"
-        
-        externalNativeBuild {
-            cmake {
-                cppFlags ""
-                // THE SILVER BULLET: Forces CMake to build for max speed
-                arguments "-DCMAKE_BUILD_TYPE=Release"
-            }
-        }
 
-        // THE FIX: Forces the C++ compiler to build for the camera's older ARM architecture
-        ndk {
-            abiFilters "armeabi", "armeabi-v7a"
-        }
+        // Bumped versioning for the JPEG.CAM era
+        versionCode 18
+        versionName "2.01"
+
     }
-    
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
     // --- THE LINT FIX: Tell Android to shut up about Google Play rules ---
     lintOptions {
         checkReleaseBuilds false
@@ -43,12 +36,6 @@ android {
         }
     }
     
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-        }
-    }
-
     // Dynamically rename the final output file based on versionName
     applicationVariants.all { variant ->
         variant.outputs.all {
@@ -58,9 +45,9 @@ android {
 }
 
 repositories {
-    maven { url "https://jitpack.io" }
-    jcenter()
     google()
+    mavenCentral()
+    maven { url "https://jitpack.io" }
 }
 
 dependencies {
