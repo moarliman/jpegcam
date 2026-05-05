@@ -498,7 +498,7 @@ public class HttpServer extends NanoHTTPD {
                 File[] subDirs = dcimDir.listFiles();
                 if (subDirs != null) {
                     for (File subDir : subDirs) {
-                        if (subDir.isDirectory() && subDir.getName().toUpperCase().endsWith("MSDCF")) {
+                        if (subDir.isDirectory() && !subDir.getName().startsWith(".")) {
                             File[] files = subDir.listFiles();
                             if (files != null) {
                                 for (File f : files) {
@@ -525,9 +525,9 @@ public class HttpServer extends NanoHTTPD {
                 File[] subDirs = dcimDir.listFiles();
                 if (subDirs != null) {
                     for (File subDir : subDirs) {
-                        if (subDir.isDirectory() && subDir.getName().toUpperCase().endsWith("MSDCF")) {
+                        if (subDir.isDirectory() && !subDir.getName().startsWith(".")) {
                             File testFile = new File(subDir, name);
-                            if (testFile.exists()) return testFile; 
+                            if (testFile.exists()) return testFile;
                         }
                     }
                 }
