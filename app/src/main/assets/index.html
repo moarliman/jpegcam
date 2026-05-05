@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#e34514">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="JPEG.CAM">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon.png">
     <title>JPEG.CAM Dashboard</title>
     <style>
         /* --- CUSTOM CAMERA FONT (Base64 Embedded) --- */
@@ -34,14 +40,17 @@
         }
 
         /* --- BASE STYLES & TEXTURES --- */
-        body { 
-            margin: 0; 
-            font-family: 'Inter', -apple-system, system-ui, sans-serif; 
-            background-color: var(--bg-dark); 
-            color: var(--text-main); 
-            -webkit-user-select: none; 
+        *, *::before, *::after { box-sizing: border-box; }
+        html { overflow-x: hidden; }
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            -webkit-user-select: none;
             min-height: 100vh;
             position: relative;
+            overflow-x: hidden;
         }
 
         /* Subtle radial glow texture */
@@ -186,7 +195,6 @@
         .lb-tools { margin-top: 30px; display: flex; gap: 15px; cursor: default; }
 
         /* --- IMPORT MODAL --- */
-        #import-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
         .modal-content { background: var(--bg-panel); padding: 35px; border-radius: 16px; border: 1px solid var(--border-color); width: 340px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
 
         /* --- TUNE PANEL --- */
@@ -195,13 +203,17 @@
         .tune-section h4 { margin: 0 0 15px; font-size: 11px; letter-spacing: 1.5px; color: var(--accent); text-transform: uppercase; }
         .tune-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
         .tune-row:last-child { margin-bottom: 0; }
-        .tune-label { font-size: 12px; font-weight: 700; color: var(--text-muted); min-width: 120px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tune-label { font-size: 12px; font-weight: 700; color: var(--text-muted); min-width: 80px; text-transform: uppercase; letter-spacing: 0.5px; }
         .tune-value { font-size: 12px; font-weight: 700; color: var(--accent); min-width: 35px; text-align: right; font-family: monospace; }
-        .tune-slider { flex: 1; -webkit-appearance: none; height: 4px; border-radius: 2px; background: var(--border-color); outline: none; cursor: pointer; }
+        .tune-slider { flex: 1; min-width: 0; -webkit-appearance: none; height: 4px; border-radius: 2px; background: var(--border-color); outline: none; cursor: pointer; }
         .tune-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
         .tune-select, .tune-input { background: #111; border: 1px solid var(--border-color); color: var(--text-main); padding: 7px 10px; border-radius: 6px; font-size: 12px; }
         .tune-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
         .tune-matrix-cell { background: #111; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 4px; border-radius: 6px; font-size: 13px; font-weight: 700; text-align: center; width: 100%; box-sizing: border-box; }
+        .tune-hint { font-size: 11px; color: var(--text-muted); margin: 0 0 12px; letter-spacing: 0.3px; line-height: 1.5; }
+        .preset-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .preset-btn { background: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; text-transform: uppercase; -webkit-tap-highlight-color: transparent; }
+        .preset-btn:active { background: var(--accent); border-color: var(--accent); }
 
     </style>
 </head>
@@ -210,7 +222,6 @@
     <header>
         <div style="display:flex; align-items:center; gap: 15px;">
             <h3 class="text-JPEG.CAM-glow">JPEG.CAM DASHBOARD</h3>
-            <button class="action-btn secondary-btn" style="padding: 6px 12px; font-size:10px; margin:0;" onclick="showImportManager()">IMPORT FILES</button>
         </div>
         <div class="sys-info" id="sys-info">SYNCING HARDWARE...</div>
     </header>
@@ -218,16 +229,15 @@
     <div class="toolbar">
         <div class="row">
             <div class="btn-group" id="mode-toggle">
-                <button class="btn active" id="btn-DCIM" onclick="setMode('DCIM')">ORIGINALS</button>
-                <button class="btn" id="btn-GRADED" onclick="setMode('GRADED')" style="display:none">RECIPES</button>
-                <button class="btn" id="btn-TUNE" onclick="setMode('TUNE')">TUNE</button>
+                <button class="btn active" id="btn-DCIM" onclick="setMode('DCIM')">PHOTOS</button>
+                <button class="btn" id="btn-TUNE" onclick="setMode('TUNE')">RECIPES</button>
             </div>
-            <div class="btn-group">
+            <div class="btn-group" id="toolbar-filter-group">
                 <button class="btn active" id="f-all" onclick="setFilter('all')">ALL TIME</button>
                 <button class="btn" id="f-today" onclick="setFilter('today')">TODAY</button>
             </div>
         </div>
-        <div class="row">
+        <div class="row" id="toolbar-select-row">
             <span id="sel-count" style="font-size:12px; color:var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">0 ITEMS SELECTED</span>
             <div>
                 <button class="action-btn secondary-btn" id="unsel-btn" style="display:none" onclick="unselectAll()">UNSELECT ALL</button>
@@ -240,6 +250,13 @@
 
     <div id="tune-panel" style="display:none">
         <div class="tune-section">
+            <h4>SAVED LOOKS</h4>
+            <p class="tune-hint">Tap to load a recipe into the active slot and apply live.</p>
+            <div class="preset-grid" id="vault-grid">
+                <span style="color:var(--text-muted);font-size:11px">Loading…</span>
+            </div>
+        </div>
+        <div class="tune-section">
             <h4>RECIPE SLOT</h4>
             <div class="tune-row">
                 <span class="tune-label">ACTIVE SLOT</span>
@@ -249,6 +266,11 @@
                 <span class="tune-label">SLOT NAME</span>
                 <input type="text" class="tune-input" id="t-name" maxlength="12" style="flex:1;max-width:120px">
                 <button class="action-btn" style="padding:7px 14px;font-size:11px;margin:0;flex-shrink:0" onclick="tuneSaveSlot()">SAVE</button>
+            </div>
+            <div class="tune-row" style="margin-top:10px;gap:8px">
+                <button class="action-btn secondary-btn" style="flex:1;padding:7px 10px;font-size:11px;margin:0" onclick="tuneExport()">DOWNLOAD</button>
+                <input id="tune-import-input" type="file" accept=".json" style="display:none" onchange="tuneImportFile(this)">
+                <button class="action-btn secondary-btn" style="flex:1;padding:7px 10px;font-size:11px;margin:0" onclick="document.getElementById('tune-import-input').click()">UPLOAD</button>
             </div>
         </div>
         <div class="tune-section">
@@ -353,19 +375,6 @@
         </div>
     </div>
 
-    <div id="import-modal">
-        <div class="modal-content">
-            <h3 style="margin-top:0; color:var(--accent); letter-spacing: 1px; font-weight: 800;">IMPORT FILES</h3>
-            <p style="font-size:13px; color:var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Upload <b>.cube</b> LUTs or <b>.txt</b> Lens Profiles. The Smart Router will organize them automatically.</p>
-            
-            <input type="file" id="import-file" accept=".cube,.cub,.txt,.lens" style="display:none" onchange="handleFileSelect(event)">
-            <button class="action-btn" style="width:100%; margin-bottom:15px; padding: 12px;" onclick="document.getElementById('import-file').click()">SELECT FILE TO UPLOAD</button>
-            
-            <div id="upload-status" style="font-size:12px; font-weight:bold; margin-bottom:15px; color:#fff; height: 15px; letter-spacing: 0.5px;"></div>
-            
-            <button class="action-btn secondary-btn" style="width:100%; margin:0; padding: 12px;" onclick="closeImportManager()">CLOSE & RESTART APP</button>
-        </div>
-    </div>
 
 
     <script>
@@ -383,7 +392,6 @@
             const res = await fetch('/api/system');
             const sys = await res.json();
             document.getElementById('sys-info').innerText = `${sys.storage_gb}GB FREE`;
-            if(sys.has_graded) document.getElementById('btn-GRADED').style.display = 'block';
             loadFiles();
         }
 
@@ -403,12 +411,13 @@
         function setMode(m) {
             mode = m;
             document.getElementById('btn-DCIM').classList.toggle('active', m === 'DCIM');
-            document.getElementById('btn-GRADED').classList.toggle('active', m === 'GRADED');
             document.getElementById('btn-TUNE').classList.toggle('active', m === 'TUNE');
             const isTune = m === 'TUNE';
             document.getElementById('tune-panel').style.display = isTune ? 'block' : 'none';
             document.getElementById('gallery').style.display = isTune ? 'none' : 'grid';
-            if (isTune) { tuneFetch(); tuneLoadRecipeList(); } else loadFiles();
+            document.getElementById('toolbar-filter-group').style.display = isTune ? 'none' : '';
+            document.getElementById('toolbar-select-row').style.display = isTune ? 'none' : '';
+            if (isTune) { tuneFetch(); tuneLoadRecipeList(); tuneLoadVault(); } else loadFiles();
         }
 
         function setFilter(f) {
@@ -519,9 +528,8 @@
                     let speed = exif.shutter ? (exif.shutter < 1 ? `1/${Math.round(1/exif.shutter)}s` : `${exif.shutter}s`) : '--s';
                     let iso = exif.iso ? `ISO ${exif.iso}` : 'ISO --';
                     
-                    let prefix = mode === 'GRADED' ? `JPEG.CAM RECIPE • ${viewName}` : viewName;
-                    let details = [prefix, focal, fnum, speed, iso].filter(Boolean).join(' • ');
-                    document.getElementById('lb-meta').innerHTML = `<span class="exif-tag" ${mode === 'GRADED' ? 'style="color:#4BA653; border-color:rgba(75, 166, 83, 0.3); background:rgba(75, 166, 83, 0.1);"' : ''}>${details}</span>`;
+                    let details = [viewName, focal, fnum, speed, iso].filter(Boolean).join(' • ');
+                    document.getElementById('lb-meta').innerHTML = `<span class="exif-tag">${details}</span>`;
                 } else {
                     document.getElementById('lb-meta').innerHTML = `<span class="exif-tag" style="color:var(--text-muted); border-color:var(--border-color); background:transparent;">${viewName} • NO METADATA</span>`;
                 }
@@ -668,53 +676,6 @@
             link.click();
         }
 
-        function showImportManager() {
-            document.getElementById('import-modal').style.display = 'flex';
-            document.getElementById('upload-status').innerText = '';
-        }
-        
-        function closeImportManager() {
-            document.getElementById('import-modal').style.display = 'none';
-        }
-        
-        async function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const ext = file.name.toLowerCase();
-            if (!ext.endsWith('.cube') && !ext.endsWith('.cub') && !ext.endsWith('.txt') && !ext.endsWith('.lens')) {
-                document.getElementById('upload-status').innerText = 'ERROR: UNSUPPORTED FILE TYPE';
-                document.getElementById('upload-status').style.color = '#E54D3A';
-                event.target.value = '';
-                return;
-            }
-
-            document.getElementById('upload-status').innerText = `UPLOADING: ${file.name.toUpperCase()}...`;
-            document.getElementById('upload-status').style.color = '#F2CC40';
-
-            try {
-                const res = await fetch('/api/upload', {
-                    method: 'POST',
-                    headers: {
-                        'X-File-Name': file.name
-                    },
-                    body: file 
-                });
-                
-                if (res.ok) {
-                    document.getElementById('upload-status').innerText = `SUCCESS: ${file.name.toUpperCase()} INSTALLED!`;
-                    document.getElementById('upload-status').style.color = '#4BA653';
-                } else {
-                    document.getElementById('upload-status').innerText = 'ERROR: UPLOAD FAILED';
-                    document.getElementById('upload-status').style.color = '#E54D3A';
-                }
-            } catch (e) {
-                document.getElementById('upload-status').innerText = 'ERROR: NETWORK CONNECTION';
-                document.getElementById('upload-status').style.color = '#E54D3A';
-            }
-            
-            event.target.value = ''; 
-        }
 
         // ---------------------------------------------------------------
         // TUNE TAB
@@ -722,6 +683,38 @@
         let tuneState = {};
         let tuneDebounce = null;
         let tuneActiveSlot = 0;
+
+        async function tuneLoadVault() {
+            try {
+                const res = await fetch('/api/vault');
+                const items = await res.json();
+                const grid = document.getElementById('vault-grid');
+                if (!items.length) {
+                    grid.innerHTML = '<span style="color:var(--text-muted);font-size:11px">No saved looks yet.</span>';
+                    return;
+                }
+                grid.innerHTML = '';
+                items.forEach(function(item) {
+                    const btn = document.createElement('button');
+                    btn.className = 'preset-btn';
+                    btn.textContent = item.profileName;
+                    btn.onclick = function() { tuneLoadFromVault(item.filename); };
+                    grid.appendChild(btn);
+                });
+            } catch(e) {}
+        }
+
+        async function tuneLoadFromVault(filename) {
+            try {
+                const res = await fetch('/api/vault/load', {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({filename: filename})
+                });
+                if (res.ok) { tuneState = await res.json(); tuneRender(); tuneLoadRecipeList(); }
+            } catch(e) {}
+        }
+
 
         async function tuneFetch() {
             try {
@@ -829,7 +822,33 @@
             tuneDebounce = setTimeout(tuneApply, 150);
         }
 
+        function tuneExport() {
+            fetch('/api/hardware').then(function(r) { return r.json(); }).then(function(data) {
+                var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = (data.profileName || 'recipe').replace(/[^a-zA-Z0-9_-]/g, '_') + '.json';
+                a.click();
+            });
+        }
+
+        function tuneImportFile(input) {
+            var file = input.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                fetch('/api/hardware', {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: e.target.result
+                }).then(function() { tuneFetch(); tuneLoadRecipeList(); });
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
         init();
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
     </script>
 </body>
 </html>

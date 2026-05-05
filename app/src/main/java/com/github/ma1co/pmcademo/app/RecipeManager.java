@@ -1,5 +1,6 @@
 package com.github.ma1co.pmcademo.app;
 
+import android.content.Context;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -7,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -220,6 +222,24 @@ public class RecipeManager {
         blank.profileName = "SLOT " + (currentSlot + 1);
         loadedProfiles[currentSlot] = blank;
         savePreferences();
+    }
+
+    public void extractPresetsIfNeeded(Context context) {
+        try {
+            String[] files = context.getAssets().list("presets");
+            if (files == null) return;
+            for (String name : files) {
+                File dest = new File(recipeDir, name.toUpperCase());
+                if (dest.exists()) continue;
+                InputStream is = context.getAssets().open("presets/" + name);
+                FileOutputStream fos = new FileOutputStream(dest);
+                byte[] buf = new byte[4096];
+                int n;
+                while ((n = is.read(buf)) != -1) fos.write(buf, 0, n);
+                is.close();
+                fos.close();
+            }
+        } catch (Exception e) {}
     }
 
     public void saveSlotToVault(String newPrettyName) {

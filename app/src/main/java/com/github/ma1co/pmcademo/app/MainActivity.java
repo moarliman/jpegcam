@@ -239,6 +239,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
         cameraManager       = new SonyCameraManager(this);
         inputManager        = new InputManager(this);
         recipeManager       = new RecipeManager();
+        recipeManager.extractPresetsIfNeeded(this);
         matrixManager       = new MatrixManager();
         matrixManager.scanMatrices();
         factoryBurnMatrices();
