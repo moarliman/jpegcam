@@ -335,6 +335,23 @@ public class HttpServer extends NanoHTTPD {
                 return newChunkedResponse(Response.Status.OK, "text/html", is);
             }
 
+            // PWA static assets
+            if (uri.equals("/manifest.json")) {
+                InputStream is = context.getAssets().open("manifest.json");
+                return newChunkedResponse(Response.Status.OK, "application/manifest+json", is);
+            }
+            if (uri.equals("/sw.js")) {
+                InputStream is = context.getAssets().open("sw.js");
+                return newChunkedResponse(Response.Status.OK, "application/javascript", is);
+            }
+            if (uri.equals("/icon.png")) {
+                InputStream is = context.getAssets().open("icon.png");
+                byte[] data = new byte[is.available()];
+                is.read(data);
+                is.close();
+                return newFixedLengthResponse(Response.Status.OK, "image/png", new java.io.ByteArrayInputStream(data), data.length);
+            }
+
             // System Status API
             if (uri.equals("/api/system")) {
                 StatFs stat = new StatFs(Filepaths.getStorageRoot().getPath());

@@ -1,0 +1,9 @@
+{
+  "name": "JPEG.CAM",
+  "short_name": "JPEG.CAM",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#e34514",
+  "icons": [{"src": "/icon.png", "sizes": "512x512", "type": "image/png"}]
+}
